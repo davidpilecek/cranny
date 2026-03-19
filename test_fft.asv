@@ -1,0 +1,13 @@
+pendulum_raw = load("4_pendulum.mat");
+pendulum_data = pendulum_raw.ans;
+x = pendulum_data.Data;
+
+L = numel(x);% Length of signal
+N = L;
+Fs = 1/0.01;
+Fn = Fs/2;
+t = pendulum_data.Time;
+
+X = fft(x);
+
+f = (0:N-1)*(Fs/N);
