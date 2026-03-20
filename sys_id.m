@@ -1,6 +1,6 @@
 clc
 clear
-pendulum_raw = load("3_pendulum.mat");
+pendulum_raw = load("responses/6_pendulum.mat");
 pendulum_data = pendulum_raw.ans;
 x = pendulum_data.Data;
 
@@ -31,8 +31,8 @@ X_filtered(mask) = 0;
 x_filtered = real(ifft(X_filtered));
 
 % plot
-% figure
-% plot(t, x, 'r')
+figure
+plot(t, x, 'r')
 % 
 % hold on
 % plot(t, x_filtered, 'b')
@@ -45,28 +45,62 @@ clc
 clear
 Ts = 0.01;
 
-y = load("2_pendulum.mat").ans.Data;
-y = y - mean(y);
+y = load("responses/5_sledge.mat").ans.Data;
+%y = y - mean(y);
 
 %y = x_filtered;
-u = load("2_sledge.mat").ans.Data;
+u = load("responses/5_input.mat").ans.Data;
 
 
 data = iddata(y, u, Ts);
 plot(data)
-delay_samples = 18;
+delay_samples = delayest(data)
 delay_time = delay_samples*Ts
 
 
-Gest = tfest(data, 6, 3, delay_time)
+Gest = tfest(data, 2, 0, delay_time)
 
 resid(Gest, data)
 
 
-y_val = load("3_pendulum.mat").ans.Data;
-y_val = y_val - mean(y_val);
+%%
+Ts = 0.01;
+y = load("responses/2_sledge.mat").ans.Data;
+%y = y - mean(y);
 
-u_val= load("3_sledge.mat").ans.Data;
+%y = x_filtered;
+u = load("responses/2_input.mat").ans.Data;
+
+data2 = iddata(y, u, Ts); 
+
+%%
+Ts = 0.01;
+y = load("responses/3_sledge.mat").ans.Data;
+%y = y - mean(y);
+
+%y = x_filtered;
+u = load("responses/3_input.m01at").ans.Data;
+
+data3 = iddata(y, u, Ts); 
+
+%%
+Ts = 0.01;
+y = load("responses/6_sledge.mat").ans.Data;
+%y = y - mean(y);
+
+%y = x_filtered;
+u = load("responses/6_input.mat").ans.Data;
+
+data4 = iddata(y, u, Ts); 
+plot(data4)
+
+
+%%
+
+y_val = load("responses/7_sledge.mat").ans.Data;
+%y_val = y_val - mean(y_val);
+
+u_val= load("responses/7_input.mat").ans.Data;
 
 validation_data = iddata(y_val, u_val, Ts);
 
