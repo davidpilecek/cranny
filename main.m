@@ -56,7 +56,7 @@ data = load("new_responses\prbs1_sledge.mat");
 u = load("new_responses\prbs1_input.mat").ans.Data;
 
 t = data.ans.Time;
-y = abs(data.ans.Data);
+y = data.ans.Data;
 
 %% Parameters
 s = tf('s')
@@ -107,12 +107,19 @@ theta_est = lsqnonlin(@(theta) cost_function(theta, t, u, y), ...
 
 disp(theta_est)
 
-y_valid = load("old_responses\5_sledge.mat").ans.Data;
+% y_valid = load("new_responses\prbs3_sledge.mat").ans.Data;
+% 
+% u_valid = load("new_responses\prbs3_input.mat").ans.Data;
+% t_valid = load("new_responses\prbs3_sledge.mat").ans.Time;
 
-u_valid = load("old_responses\5_input.mat").ans.Data;
-t_valid = load("old_responses\5_input.mat").ans.Time;
+y_valid = load("old_responses\7_sledge.mat").ans.Data;
 
-y_model = model_output(theta_est, t_valid, u_valid);
+u_valid = load("old_responses\7_input.mat").ans.Data;
+t_valid = load("old_responses\7_sledge.mat").ans.Time;
+
+
+
+y_model = 1000000*model_output(theta_est, t_valid, u_valid);
 
 plot(y_model)
 hold on
