@@ -1,0 +1,68 @@
+%% Load
+
+clc;clear;
+Ts = 0.001;
+
+impulse_in = load('responses2/impulse_input.mat').ans;
+impulse_p = load('responses2/impulse_pendulum.mat').ans;
+impulse_s = load('responses2/impulse_sledge.mat').ans;
+
+pulse_in = load('responses2/pulse_input.mat').ans;
+pulse_p = load('responses2/pulse_pendulum.mat').ans;
+pulse_s = load('responses2/pulse_sledge.mat').ans;
+
+ramp_in = load('responses2/ramp_input.mat').ans;
+ramp_p = load('responses2/ramp_pendulum.mat').ans;
+ramp_s = load('responses2/ramp_sledge.mat').ans;
+
+sine_in = load('responses2/sine_input.mat').ans;
+sine_p = load('responses2/sine_pendulum.mat').ans;
+sine_s = load('responses2/sine_sledge.mat').ans;
+
+step2_in = load('responses2/step2_input.mat').ans;
+step2_p = load('responses2/step2_pendulum.mat').ans;
+step2_s = load('responses2/step2_sledge.mat').ans;
+
+%% Interpolate impulse data
+
+imp_in_t = impulse_in.Time;
+imp_in_y = impulse_in.Data;
+
+imp_in_t_new = 0:Ts:max(imp_in_t);
+imp_in_interp = interp1(imp_in_t, imp_in_y, imp_in_t_new, "spline");
+
+imp_s_t = impulse_in.Time;
+imp_s_y = impulse_in.Data;
+
+imp_s_t_new = 0:Ts:max(imp_s_t);
+imp_s_interp = interp1(imp_s_t, imp_s_y, imp_s_t_new, "spline");
+
+imp_p_t = impulse_p.Time;
+imp_p_y = impulse_p.Data;
+
+imp_p_t_new = 0:Ts:max(imp_p_t);
+imp_p_interp = interp1(imp_p_t, imp_p_y, imp_p_t_new, "spline");
+
+
+imp_in_interp = imp_in_interp(:);
+imp_p_interp  = imp_p_interp(:);
+
+imp_p = iddata(imp_p_interp, imp_in_interp, Ts);
+
+%% Interpolate pulse data
+
+p_t = pulse_in.Time;
+p_in_y = pulse_in.Data;
+
+p_t_new = 0:Ts:max(p_t);
+p_in_interp = interp1(p_t, p_in_y, p_in_t_new, "spline");
+
+p_p_y = pulse_p.Data;
+
+p_p_interp = interp1(p_t, p_p_y, p_p_t_new, "spline");
+
+p_p_interp  = p_p_interp(:);
+
+imp_p = iddata(p_p_interp, p_in_interp, Ts);
+
+plot(imp_p)

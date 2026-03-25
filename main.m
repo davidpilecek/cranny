@@ -117,8 +117,6 @@ y_valid = load("old_responses\7_sledge.mat").ans.Data;
 u_valid = load("old_responses\7_input.mat").ans.Data;
 t_valid = load("old_responses\7_sledge.mat").ans.Time;
 
-
-
 y_model = 1000000*model_output(theta_est, t_valid, u_valid);
 
 plot(y_model)
