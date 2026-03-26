@@ -93,18 +93,25 @@ plot(u_ts)
 MaxMissedTicks = 99^100;
 SampleTime = 0.001;
 
-empty = load("emptyL.mat").ans;
-l1 = load("1637L.mat").ans;
-l2 = load("2756L.mat").ans;
 
-plot(empty)
+%%
+empty1 = load("empty2.mat").ans.Data;
+empty2 = load("empty3.mat").ans.Data;
+l1 = load("loaded2.mat").ans.Data;
+l2 = load("loaded3.mat").ans.Data;
+
+figure
+plot(empty1)
 hold on
+plot(empty2)
 plot(l1)
-hold on
 plot(l2)
 
-legend("E", "L1", "L2")
+legend("E1", "E2", "L1", "L2")
+grid on
 
+disp(size(empty1))
+disp(empty1(1:10))
 %%
 
 % Speed1 and 2 are unloaded
