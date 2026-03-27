@@ -3,12 +3,25 @@ clc;clear;
 % data = load("old_responses\2_sledge.mat");
 % u = load("old_responses\2_input.mat").ans.Data;
 
-data = load("old_responses\2_sledge.mat");
-u = load("old_responses\2_pendulum.mat").ans.Data;
-u = u - mean(u);
+data = load('responses_25_3/1prbssledge.mat');
+y_data = load('responses_25_3/1prbspendulum.mat').ans;
 
-t = data.ans.Time;
-y = data.ans.Data;
+% Extract signals
+t_u = data.ans.Time;
+u = data.ans.Data;
+
+t_y = y_data.Time;
+y = y_data.Data;
+
+% Remove bias
+y = y - mean(y);
+
+% Resample y → match u time base (Ts = 0.01)
+u_resampled = interp1(t_u, u, t_y, 'linear');
+
+% Now everything aligned
+t = t_y;
+u = u_resampled;
 
 %% Parameters
 s = tf('s');
@@ -35,9 +48,8 @@ function y = model_output(theta, t, u)
     
     G_pendulum = k4*s^2 / (J_p*s^2 + D_p*s + k4*g);
 
+
     y = lsim(G_pendulum, u, t);
-    plot(y)
-    hold on
 end
 
 function err = cost_function(theta, t, u, y_meas)
@@ -61,16 +73,26 @@ disp(theta_est)
 
 %%
 
-y_valid = load("old_responses\4_pendulum.mat").ans.Data;
-y_valid = y_valid - mean(y_valid)
-u_valid = load("old_responses\4_sledge.mat").ans.Data;
+y_valid = load('responses_25_3/impulse_pendulum.mat');
+u_valid = load('responses_25_3/impulse_sledge.mat');
+
+t_y = y_valid.ans.Time;
+t_u = u_valid.ans.Time;
+
+yval = y_valid.ans.Data;
+yval = yval - mean(yval);
+
+uval = u_valid.ans.Data;
+
+u_resampled = interp1(t_u, uval, t_y, 'linear');
+u_validate = u_resampled;
 
 
-t_valid = load("old_responses\4_pendulum.mat").ans.Time;
+y_model = model_output(theta_est, t_y, u_validate);
 
-y_model = model_output(theta_est, t_valid, u_valid)/10000;
+
 figure
 plot(y_model)
 hold on
-plot(y_valid)
+plot(yval)
 legend("sim", "measured")

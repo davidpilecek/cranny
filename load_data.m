@@ -23,6 +23,36 @@ step2_in = load('responses2/step2_input.mat').ans;
 step2_p = load('responses2/step2_pendulum.mat').ans;
 step2_s = load('responses2/step2_sledge.mat').ans;
 
+
+gauss1_in = load('responses_25_3/1_sim_input.mat').ans;
+gauss1_p = load('responses_25_3/1_sim_pendulum.mat').ans;
+gauss1_s = load('responses_25_3/1_sim_sledge.mat').ans;
+
+
+% gauss2_in = load('responses_25_3/2_sim_input.mat').ans.Data;
+% gauss2_p = load('responses_25_3/2_sim_pendulum.mat').ans.Data;
+% gauss2_s = load('responses_25_3/2_sim_sledge.mat').ans.Data;
+% 
+% 
+% gauss2_p_id = iddata(gauss2_p, gauss2_s, Ts);
+% gauss2_s_id = iddata(gauss2_s, gauss2_in, Ts);
+
+%% Interpolate gauss data
+
+gauss1_t_new = 0:Ts:max(impulse_in.Time);
+
+gauss1_in_interp = interp1(gauss1_in.Time, gauss1_in.Data, gauss1_t_new, "spline");
+gauss1_p_interp  = interp1(gauss1_p.Time,  gauss1_p.Data,  gauss1_t_new, "spline");
+gauss1_p_interp = gauss1_p_interp - mean(gauss1_p_interp);
+gauss1_s_interp  = interp1(gauss1_s.Time,  gauss1_s.Data,  gauss1_t_new, "spline");
+
+gauss1_in_interp = gauss1_in_interp(:);
+gauss1_p_interp  = gauss1_p_interp(:);
+gauss1_s_interp  = gauss1_s_interp(:);
+
+gauss1_p_id = iddata(gauss1_p_interp, gauss1_s_interp, Ts);
+gauss1_s_id = iddata(gauss1_s_interp, gauss1_in_interp, Ts);
+
 %% Interpolate impulse data
 
 imp_t_new = 0:Ts:max(impulse_in.Time);

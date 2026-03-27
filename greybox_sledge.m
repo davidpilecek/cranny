@@ -40,6 +40,7 @@ sledge5 = iddata(y5, u5, Ts);
 p5 = load("old_responses\4_pendulum.mat").ans.Data;
 p5 = p5-mean(p5);
 pend5 = iddata(p5, y5, Ts);
+
 parameters = [1; 1; 1]; % initial guesses [M, B, K]
 
 

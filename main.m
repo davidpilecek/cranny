@@ -52,12 +52,37 @@ clc;clear;
 % data = load("old_responses\2_sledge.mat");
 % u = load("old_responses\2_input.mat").ans.Data;
 
-data = load("new_responses\prbs1_sledge.mat");
-u = load("new_responses\prbs1_input.mat").ans.Data;
+data = load("responses_25_3\impulse_sledge.mat");
+u = load("responses_25_3\impulse_input.mat").ans.Data;
 
 t = data.ans.Time;
 y = data.ans.Data;
 
+plot(data.ans)
+
+%%
+fs = 1 / mean(diff(data.ans.Time)); % Calculate sampling frequency [cite: 939]
+fc = 5; % Cut-off frequency in Hz (Adjust based on your crane's speed)
+
+% 2nd order butterworth filter
+[b, a] = butter(2, fc/(fs/2), 'low');
+
+% 2. Apply zero-phase filtering (filtfilt) to avoid phase shift [cite: 744]
+% This is important so your time-domain peaks stay aligned for identification.
+smoothed_position = filtfilt(b, a, data.ans.Data);
+
+% 3. Subtract mean/offset as recommended by the text [cite: 966, 1020]
+% Linear models are usually identified around an equilibrium point.
+detrended_position = smoothed_position - mean(smoothed_position);
+
+%% Plot Comparison
+figure;
+plot(t, data.ans.Data, 'r--', 'DisplayName', 'Raw Encoder Data');
+hold on;
+plot(t, smoothed_position, 'b', 'LineWidth', 1.5, 'DisplayName', 'Filtered Data');
+title('Effect of Butterworth Filtering on Encoder Steps');
+xlabel('Time (s)'); ylabel('Position (cm)');
+legend; grid on;
 %% Parameters
 s = tf('s')
 
@@ -96,7 +121,7 @@ function err = cost_function(theta, t, u, y_meas)
     err = y_meas - y_model;
 end
     
-theta0 = [0.0527, 0.9, 0.007, 0.00002881, 30]; % initial guess
+theta0 = [1, 1, 1, 1, 1]; % initial guess
 
 options = optimoptions('lsqnonlin', ...
     'Display', 'iter', ...
@@ -112,15 +137,18 @@ disp(theta_est)
 % u_valid = load("new_responses\prbs3_input.mat").ans.Data;
 % t_valid = load("new_responses\prbs3_sledge.mat").ans.Time;
 
-y_valid = load("old_responses\7_sledge.mat").ans.Data;
+%%
+y_valid = load("responses_25_3\sine_sledge.mat").ans.Data;
+y_valid = y_valid - mean(y_valid)
+u_valid = load("responses_25_3\sine_input.mat").ans.Data;
+t_valid = load("responses_25_3\sine_sledge.mat").ans.Time;
 
-u_valid = load("old_responses\7_input.mat").ans.Data;
-t_valid = load("old_responses\7_sledge.mat").ans.Time;
+y_model = model_output(theta_est, t_valid, u_valid);
 
-y_model = 1000000*model_output(theta_est, t_valid, u_valid);
-
+y_model = y_model - mean(y_model)
 plot(y_model)
 hold on
 plot(y_valid)
 
 legend("simulated", "real")
+
