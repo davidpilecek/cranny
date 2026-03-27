@@ -1,7 +1,7 @@
 clc;clear;
 
 MaxMissedTicks = 99^100;
-SampleTime = 0.001;
+SampleTime = 0.01;
 
 
 %% Calibrate distance
@@ -17,8 +17,6 @@ ratio = floor(avg / 1.145)   % counts per cm
 
 
 %% Calibrate pendulum
-
-
 MaxMissedTicks = 99^100;
 SampleTime = 0.001;
 
@@ -38,8 +36,8 @@ clc;clear;
 MaxMissedTicks = 99^100;
 SampleTime = 0.01;
 
-T_prbs = 25;       % PRBS duration
-T_zero = 40;       % zero duration
+T_prbs = 40;       % PRBS duration
+T_zero = 5;       % zero duration
 
 N_prbs = T_prbs / SampleTime;
 N_zero = T_zero / SampleTime;
@@ -49,10 +47,10 @@ zero_in = zeros(N_zero, 1);
 
 
 type = 'prbs';
-Band = [0 0.08];
-prbs_in = idinput(2500, type, Band, [-1.5, 1.5]);
+Band = [1 0.05];
+prbs_in = idinput(3150, type, Band, [-0.5, 0.5]);
 
-u = [prbs_in; zero_in];
+u = [zero_in; prbs_in; zero_in];
 
 t = (0:length(u)-1)' * SampleTime;
 
@@ -66,8 +64,8 @@ clc; clear;
 MaxMissedTicks = 99^100;
 SampleTime = 0.01;
 
-T_prbs = 25;       % PRBS duration
-T_zero = 40;       % zero duration
+T_prbs = 40;       % PRBS duration
+T_zero = 25;       % zero duration
 
 N_prbs = T_prbs / SampleTime;
 N_zero = T_zero / SampleTime;
@@ -75,10 +73,10 @@ N_zero = T_zero / SampleTime;
 zero_in = zeros(N_zero, 1);
 
 NumChannel = 1;
-Period = 2000;
+Period = 4000;
 NumPeriod = 1;
 
-u = idinput([Period, NumChannel, NumPeriod], 'rgs', [0 0.1], [-1.2 1.2], 20);
+u = idinput([Period, NumChannel, NumPeriod], 'rgs', [0 0.01], [-0.2 0.2], 1);
 u_sig = [u; zero_in];
 
 t = (0:length(u_sig)-1)' * SampleTime;
