@@ -152,3 +152,17 @@ plot(y_valid)
 
 legend("simulated", "real")
 
+%%
+
+n = size(datasets);
+n = n(4);
+
+for i = 1:n
+    u = datasets.u{i};
+    % Scaling: Convert measured cm to m for SI consistency
+    y_meas = datasets.y{i}(:,1) / 100; 
+    t = (0:datasets.Ts{i}:(length(u)-1)*datasets.Ts{i})';
+    plot(y_meas)
+    hold on
+end
+

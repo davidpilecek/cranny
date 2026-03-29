@@ -48,7 +48,6 @@ function y = model_output(theta, t, u)
     
     G_pendulum = k4*s^2 / (J_p*s^2 + D_p*s + k4*g);
 
-
     y = lsim(G_pendulum, u, t);
 end
 
