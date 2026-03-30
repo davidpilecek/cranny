@@ -18,7 +18,7 @@ ratio = floor(avg / 1.145)   % counts per cm
 
 %% Calibrate pendulum
 MaxMissedTicks = 99^100;
-SampleTime = 0.001;
+SampleTime = 0.01;
 
 
 sledge_calib = out.sledge_calibrate;
@@ -45,10 +45,9 @@ N_zero = T_zero / SampleTime;
 
 zero_in = zeros(N_zero, 1);
 
-
 type = 'prbs';
-Band = [1 0.05];
-prbs_in = idinput(3150, type, Band, [-0.5, 0.5]);
+Band = [1 0.08];
+prbs_in = idinput(3150, type, Band, [-1.8, 1.8]);
 
 u = [zero_in; prbs_in; zero_in];
 

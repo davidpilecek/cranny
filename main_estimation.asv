@@ -310,7 +310,7 @@ sysd = c2d(tfModel, Ts, 'zoh')
 
 %% Estimate tf pendulum
 
-source = merge(data_prbs2_pendulum, data_ramp_pendulum, data_sine_pendulum, data_step2_pendulum);
+source = merge(data_prbs2_pendulum, data_ramp_pendulum, data_sine_pendulum, data_step);
 
 Opt = tfestOptions('Display','on');
 np = 2;
