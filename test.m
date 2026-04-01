@@ -1,3 +1,3 @@
 clc;clear;
 SampleTime = 0.01;
-MaxMissedTicks
+MaxMissedTicks = 99^10;

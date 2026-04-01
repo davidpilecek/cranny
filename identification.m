@@ -1,4 +1,4 @@
-%%
+%% Load without processing
 clc;clear;
 Ts = 0.01;
 
@@ -66,10 +66,12 @@ u_ts = timeseries(u, t);
 plot(u_ts)
 
 
+%% Load Responses With Filter
+clc;clear;
 
 Ts = 0.01;
 fc = 10;
-fc_sledge = 8;
+fc_sledge = 1;
 [b,a] = butter(4, fc * 2 * Ts);  % normalized frequency, 2nd order, butterworth filter
 [b2,a2] = butter(2, fc_sledge * 2 * Ts);
 
@@ -108,12 +110,6 @@ yp.Data = yp.Data - mean(yp.Data);
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
-
-figure
-y_s_f = filtfilt(b2,a2,ys_i);
-plot(ys_i)
-hold on
-plot(y_s_f)
 
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
@@ -195,14 +191,20 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
+p = polyfit(t, ys_i, 1);   % linear trend (slope + intercept)
+trend = polyval(p, t);
+ys_i = ys_i - trend + trend(1);
+
+
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
-y_clean = sgolayfilt(ys_i, 3, 11);
-figure
-plot(ys_i)
+plot(t, ys_i)
+ys_i= filtfilt(b2,a2,ys_i);
 hold on
-plot(y_clean)
+plot(t, ys_i)
+legend("before", "after")
+
 
 data_sine_sledge   = iddata(ys_i, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
@@ -267,8 +269,8 @@ y_p_f = filtfilt(b,a,yp_i);
 data_rgs_c_sledge   = iddata(ys_i, u_i, Ts);
 data_rgs_c_pendulum = iddata(y_p_f, ys_i, Ts);
 
-data_estimate = merge(data_prbs2_sledge, data_step2_sledge, data_ramp_sledge);
-
+data_estimate = merge(data_prbs2_sledge, data_step2_sledge, data_ramp_sledge, data_bang_sledge);
+plot(data_bang_sledge)
 %% Estimate tf sledge
 
 source = data_estimate;
@@ -279,11 +281,30 @@ ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
-%% Validate
 
-num = [0.0696 0 0];
-den = [0.01558 0.001416 0.6834];
-tfPend = tf(num, den);
+%%
+
+zero(tfSledge)
+
+y_valid = lsim(tfSledge, data_sine_sledge.InputData, data_sine_sledge.SamplingInstants);
+%%
+plot(data_sine_sledge.SamplingInstants, y_valid)
+figure
+plot(data_sine_sledge.SamplingInstants, data_sine_sledge.OutputData)
+
+%% Validate sledge
+source_val = data_prbs_sledge;
+ 
+figure
+compare(source_val, tfSledge)
+sim = lsim(tfSledge, source_val.InputData, source_val.SamplingInstants);
+
+figure
+plot(source_val)
+figure
+plot(sim)
+hold on
+plot(source_val.OutputData)
 
 %%
 
@@ -305,46 +326,40 @@ hold on
 plot(out.pend.Time, out.pend.Data*180/pi)
 legend("simulated", "real")
 
-%% 
-sysd = c2d(tfModel, Ts, 'zoh')
-
 %% Estimate tf pendulum
+source = data_prbs2_pendulum;
 
-source = merge(data_prbs2_pendulum, data_ramp_pendulum, data_sine_pendulum, data_step2_pendulum);
+% source = merge(data_prbs_pendulum, data_ramp_pendulum, data_bang_pendulum, data_step2_pendulum);
 
 Opt = tfestOptions('Display','on');
 np = 2;
 nz = 2;
-ioDelay = delayest(source) * Ts;
+ioDelay = delayest(source) * Ts
 
 tfPend2 = tfest(source, np, nz, ioDelay, Opt)
 
-%% Validate sledge
-source_val = data_prbs_sledge;
-
-figure
-compare(source_val, tfSledge)
-sim = lsim(tfSledge, source_val.InputData, source_val.SamplingInstants);
-
-figure
-plot(source_val)
-figure
-plot(sim)
-hold on
-plot(source_val.OutputData)
-
 %% Validate pendulum
-source_val = data_ramp_pendulum;
+source_val = data_rgs_pendulum;
 
+
+bode(tfPend2)
 figure
-compare(source_val, tfModel)
-sim = lsim(tfModel, source_val.InputData, source_val.SamplingInstants);
+compare(source_val, tfPend2)
+sim = lsim(tfPend2, source_val.InputData, source_val.SamplingInstants);
 
 figure
 plot(sim)
 hold on
 plot(source_val.OutputData)
 
+%% Validate
+
+num = [0.0696 0 0];
+den = [0.01558 0.001416 0.6834];
+tfPend = tf(num, den);
+
+bode(tfPend);
+rlocus(tfPend)
 
 %% Resids
 
