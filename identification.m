@@ -343,6 +343,15 @@ source_val = data_rgs_pendulum;
 
 
 bode(tfPend2)
+%%
+
+tfPend_Alex = tf([1 0 0], [1 0.04 39.69])
+
+figure
+compare(source_val, tfPend_Alex)
+sim2 = lsim(tfPend_Alex, source_val.InputData, source_val.SamplingInstants);
+
+
 figure
 compare(source_val, tfPend2)
 sim = lsim(tfPend2, source_val.InputData, source_val.SamplingInstants);
@@ -350,7 +359,10 @@ sim = lsim(tfPend2, source_val.InputData, source_val.SamplingInstants);
 figure
 plot(sim)
 hold on
+plot(sim2)
+hold on
 plot(source_val.OutputData)
+legend("me", "alex", "true")
 
 %% Validate
 
