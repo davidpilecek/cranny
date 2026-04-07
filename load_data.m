@@ -1,3 +1,43 @@
+%% Load without processing
+clc;clear;
+Ts = 0.01;
+
+input = load("hidden/compensated/prbs_comp_input.mat").ans.Data;
+sledge = load("hidden/compensated/prbs_comp_sledge_cm.mat").ans.Data;
+data = iddata(sledge, input, Ts);
+
+input2 = load("hidden/compensated/rgs_c_input.mat").ans.Data;
+sledge2 = load("hidden/compensated/rgs_c_sledge_cm.mat").ans.Data;
+data2 = iddata(sledge2, input2, Ts);
+
+bang_input  = load("responses_crane2/bang_input.mat").ans.Data;
+bang_sledge = load("responses_crane2/bang_sledge_cm.mat").ans.Data;
+data_bang   = iddata(bang_sledge, bang_input, Ts);
+
+prbs_input  = load("responses_crane2/prbs_input.mat").ans.Data;
+prbs_sledge = load("responses_crane2/prbs_sledge_cm.mat").ans.Data;
+data_prbs   = iddata(prbs_sledge, prbs_input, Ts);
+
+prbs2_input  = load("responses_crane2/prbs2_input.mat").ans.Data;
+prbs2_sledge = load("responses_crane2/prbs2_sledge_cm.mat").ans.Data;
+data_prbs2   = iddata(prbs2_sledge, prbs2_input, Ts);
+
+ramp_input  = load("responses_crane2/ramp_input.mat").ans.Data;
+ramp_sledge = load("responses_crane2/ramp_sledge_cm.mat").ans.Data;
+data_ramp   = iddata(ramp_sledge, ramp_input, Ts);
+
+rgs_input  = load("responses_crane2/rgs_input.mat").ans.Data;
+rgs_sledge = load("responses_crane2/rgs_sledge_cm.mat").ans.Data;
+data_rgs   = iddata(rgs_sledge, rgs_input, Ts);
+
+sine_input  = load("responses_crane2/sine_input.mat").ans.Data;
+sine_sledge = load("responses_crane2/sine_sledge_cm.mat").ans.Data;
+data_sine   = iddata(sine_sledge, sine_input, Ts);
+
+step2_input  = load("responses_crane2/step2_input.mat").ans.Data;
+step2_sledge = load("responses_crane2/step2_sledge_cm.mat").ans.Data;
+data_step2   = iddata(step2_sledge, step2_input, Ts);
+
 %% Load
 
 clc;clear;
