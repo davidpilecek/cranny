@@ -49,12 +49,12 @@ fc_sledge = 2;
 [b,a] = butter(2, fc * 2 * Ts);  % normalized frequency, 2nd order, butterworth filter
 [b2,a2] = butter(2, fc_sledge * 2 * Ts);
 
-base = "responses_crane2/";
+base = "PC2/responses/";
 
 % === BANG ======================================
-u  = load(base + "bang_input.mat").ans;
-ys = load(base + "bang_sledge_cm.mat").ans;
-yp = load(base + "bang_pendulum_deg.mat").ans;
+u  = load(base + "bang_in.mat").ans;
+ys = load(base + "bang_sled.mat").ans;
+yp = load(base + "bang_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -66,8 +66,6 @@ ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
@@ -75,9 +73,9 @@ data_bang_sledge = iddata(ys_i, u_i, Ts);
 data_bang_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % ==================== PRBS ======================================
-u  = load(base + "prbs_input.mat").ans;
-ys = load(base + "prbs_sledge_cm.mat").ans;
-yp = load(base + "prbs_pendulum_deg.mat").ans;
+u  = load(base + "prbs_in.mat").ans;
+ys = load(base + "prbs_sled.mat").ans;
+yp = load(base + "prbs_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -88,20 +86,19 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
-plot(yp_i)
-hold on
+plot(yp.Data)
+% hold on
 y_p_f = filtfilt(b,a,yp_i);
-plot(y_p_f)
+
+% plot(y_p_f)
 data_prbs_sledge    = iddata(ys_i, u_i, Ts);
 data_prbs_pendulum  = iddata(y_p_f, ys_i, Ts);
 
 % === PRBS2 ======================================
-u  = load(base + "prbs2_input.mat").ans;
-ys = load(base + "prbs2_sledge_cm.mat").ans;
-yp = load(base + "prbs2_pendulum_deg.mat").ans;
+u  = load(base + "prbs2_in.mat").ans;
+ys = load(base + "prbs2_sled.mat").ans;
+yp = load(base + "prbs2_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -111,8 +108,6 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b2,a2,ys_i);
@@ -121,10 +116,9 @@ data_prbs2_sledge   = iddata(ys_i, u_i, Ts);
 data_prbs2_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === RAMP =========================================
-u  = load(base + "ramp_input.mat").ans;
-ys = load(base + "ramp_sledge_cm.mat").ans;
-yp = load(base + "ramp_pendulum_deg.mat").ans;
-
+u  = load(base + "ramp_in.mat").ans;
+ys = load(base + "ramp_sled.mat").ans;
+yp = load(base + "ramp_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -136,39 +130,16 @@ u_i  = interp1(u.Time,  u.Data,  t);
 yp_i = interp1(yp.Time, yp.Data, t);
 ys_i = interp1(ys.Time, ys.Data, t, 'linear');
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
 data_ramp_sledge   = iddata(ys_i, u_i, Ts);
 data_ramp_pendulum = iddata(y_p_f, ys_i, Ts);
 
-% === RGS =========================================
-u  = load(base + "rgs_input.mat").ans;
-ys = load(base + "rgs_sledge_cm.mat").ans;
-yp = load(base + "rgs_pendulum_deg.mat").ans;
-
-tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
-tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
-t = (tmin:Ts:tmax)';
-yp.Data = yp.Data - mean(yp.Data);
-u_i  = interp1(u.Time,  u.Data,  t);
-ys_i = interp1(ys.Time, ys.Data, t);
-yp_i = interp1(yp.Time, yp.Data, t);
-
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
-% Filter
-y_p_f = filtfilt(b,a,yp_i);
-
-data_rgs_sledge   = iddata(ys_i, u_i, Ts);
-data_rgs_pendulum = iddata(y_p_f, ys_i, Ts);
-
-% === STEP2 =========================================
-u  = load(base + "step2_input.mat").ans;
-ys = load(base + "step2_sledge_cm.mat").ans;
-yp = load(base + "step2_pendulum_deg.mat").ans;
+% === STEP =========================================
+u  = load(base + "step_in.mat").ans;
+ys = load(base + "step_sled.mat").ans;
+yp = load(base + "step_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -179,19 +150,16 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
-data_step2_sledge   = iddata(ys_i, u_i, Ts);
-data_step2_pendulum = iddata(y_p_f, ys_i, Ts);
+data_step_sledge   = iddata(ys_i, u_i, Ts);
+data_step_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === SAW =========================================
-u  = load("validation\saw_input.mat").ans;
-ys = load("validation\saw_sledge_cm.mat").ans;
-yp = load("validation\saw_pendulum_deg.mat").ans;
+u  = load(base + "saw_in.mat").ans;
+ys = load(base + "saw_sled.mat").ans;
+yp = load(base + "saw_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -202,8 +170,6 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
@@ -211,22 +177,19 @@ data_saw_sledge   = iddata(ys_i, u_i, Ts);
 data_saw_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === PULSE =========================================
-u  = load("validation\pulse_input.mat").ans;
-ys = load("validation\pulse_sledge_cm.mat").ans;
-yp = load("validation\pulse_pendulum_deg.mat").ans;
+u  = load(base + "pulse_in.mat").ans;
+ys = load(base + "pulse_sled.mat").ans;
+yp = load(base + "pulse_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
-
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 
 y_p_f = filtfilt(b,a,yp_i);
@@ -235,9 +198,9 @@ data_pulse_sledge   = iddata(ys_i, u_i, Ts);
 data_pulse_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === sine2 =========================================
-u  = load("validation\sine2_input.mat").ans;
-ys = load("validation\sine2_sledge_cm.mat").ans;
-yp = load("validation\sine2_pendulum_deg.mat").ans;
+u  = load(base + "sine2_in.mat").ans;
+ys = load(base + "sine2_sled.mat").ans;
+yp = load(base + "sine2_pend.mat").ans;
 
 tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
 tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
@@ -248,29 +211,38 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-
-ys_i = ys_i / 100;          % cm → m
-yp_i = yp_i * pi / 180;     % deg → rad
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
 data_sine2_sledge   = iddata(ys_i, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
-
-
-data_estimate_sledge = merge(data_prbs2_sledge, data_step2_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
-% data_estimate_sledge = data_step2_sledge
-
-
-
 %%
+data_estimate_sledge = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
 
-plot(data_prbs_sledge)
+% plot(data_estimate_sledge)
 
+%% SS sledge
 
+par0 = [0.1; 0.01; 0.001; 5]; % initial guesses
+
+sys = idgrey('sledge_model', par0, 'c');
+
+sys.Structure.Parameters(1).Minimum = 0; % Kt
+sys.Structure.Parameters(2).Minimum = 0; % Jm
+sys.Structure.Parameters(3).Minimum = 0; % Dm
+sys.Structure.Parameters(4).Minimum = 0; % Ds
+
+opt = greyestOptions;
+opt.Display = 'on';
+
+sys_sledge = greyest(data_estimate_sledge, sys, opt);
+tf_sledge_gb = tf(sys_sledge)
+%%
+compare(data_estimate_sledge, sys_est)
 %% Estimate tf sledge
 
-source = data_estimate_sledge;
+% source = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
+source = data_prbs_sledge;
 
 Opt = tfestOptions('Display','on');
 np = 2;
@@ -278,9 +250,28 @@ ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
+%%
+
+data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum);
+
+% Initial guesses
+Jp0 = 0.015;
+Dp0 = 0.005;
+
+par0 = [Jp0; Dp0];
+
+sys = idgrey('pendulum_model', par0, 'c');
+sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
+sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
+sys_est = greyest(data_estimate_pendulum, sys)
 
 %%
 
+tfPend = tf(sys_est)
+zero(sys_tf);
+%%
+plot(data_step_pendulum)
+%%
 y_valid = lsim(tfSledge, data_sine_sledge.InputData, data_sine_sledge.SamplingInstants);
 
 plot(data_sine_sledge.SamplingInstants, y_valid)
@@ -322,32 +313,24 @@ plot(out.pend.Time, out.pend.Data*180/pi)
 legend("simulated", "real")
 
 %% Estimate tf pendulum
-% source = data_prbs2_pendulum;
+% source = data_prbs_pendulum;
 
 Opt = tfestOptions('Display','on');
 np = 2;
 nz = 2;
 
-source = merge(data_bang_pendulum, data_prbs2_pendulum, data_saw_pendulum, data_sine2_pendulum);
+source = merge(data_prbs_pendulum, data_bang_pendulum, data_saw_pendulum, data_sine2_pendulum);
+% source = data_prbs_pendulum;
 ioDelay = delayest(source) * Ts
-tfPend2 = tfest(source, np, nz, ioDelay, Opt)
-
-%%
-% source = merge(data_prbs2_pendulum, data_ramp_pendulum, data_bang_pendulum, data_step2_pendulum, data_rgs_pendulum);
-source = data_ramp_pendulum;
 tfPend = tfest(source, np, nz, ioDelay, Opt)
 
 %% Validate pendulum
 % source_val = data_prbs_pendulum;
 
 figure
-compare(data_prbs2_pendulum, tfPend)
+compare(data_step_pendulum, tfPend)
 figure
-compare(data_rgs_pendulum, tfPend)
-figure
-compare(data_step2_pendulum, tfPend)
-figure
-compare(data_bang_pendulum, tfPend)
+compare(data_sine2_pendulum, tfPend)
 figure
 compare(data_pulse_pendulum, tfPend)
 figure
@@ -358,21 +341,17 @@ compare(data_saw_pendulum, tfPend)
 % source_val = data_prbs_pendulum;
 
 figure
-compare(data_prbs2_pendulum, tfPend2)
+compare(data_prbs_pendulum, tfPend)
 figure
-compare(data_rgs_pendulum, tfPend2)
+compare(data_step_pendulum, tfPend)
 figure
-compare(data_step2_pendulum, tfPend2)
+compare(data_bang_pendulum, tfPend)
 figure
-compare(data_bang_pendulum, tfPend2)
+compare(data_pulse_pendulum, tfPend)
 figure
-compare(data_pulse_pendulum, tfPend2)
-figure
-compare(data_saw_pendulum, tfPend2)
-
+compare(data_saw_pendulum, tfPend)
 
 %%
-
 tfPend
 
 % tfPend2 = tf([0.073 0 0], [0.015 0.002 0.7168])
