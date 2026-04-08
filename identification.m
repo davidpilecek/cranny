@@ -216,31 +216,10 @@ y_p_f = filtfilt(b,a,yp_i);
 
 data_sine2_sledge   = iddata(ys_i, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
-%%
-data_estimate_sledge = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
 
-% plot(data_estimate_sledge)
-
-%% SS sledge
-
-par0 = [0.1; 0.01; 0.001; 5]; % initial guesses
-
-sys = idgrey('sledge_model', par0, 'c');
-
-sys.Structure.Parameters(1).Minimum = 0; % Kt
-sys.Structure.Parameters(2).Minimum = 0; % Jm
-sys.Structure.Parameters(3).Minimum = 0; % Dm
-sys.Structure.Parameters(4).Minimum = 0; % Ds
-
-opt = greyestOptions;
-opt.Display = 'on';
-
-sys_sledge = greyest(data_estimate_sledge, sys, opt);
-tf_sledge_gb = tf(sys_sledge)
-%%
-compare(data_estimate_sledge, sys_est)
 %% Estimate tf sledge
 
+data_estimate_sledge = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
 % source = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
 source = data_prbs_sledge;
 
@@ -250,7 +229,7 @@ ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
-%%
+%% GREYBOX PENDULUM
 
 data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum);
 
@@ -268,9 +247,7 @@ sys_est = greyest(data_estimate_pendulum, sys)
 %%
 
 tfPend = tf(sys_est)
-zero(sys_tf);
-%%
-plot(data_step_pendulum)
+
 %%
 y_valid = lsim(tfSledge, data_sine_sledge.InputData, data_sine_sledge.SamplingInstants);
 
