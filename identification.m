@@ -51,6 +51,7 @@ fc_sledge = 2;
 
 base = "PC2/responses/";
 
+
 % === BANG ======================================
 u  = load(base + "bang_in.mat").ans;
 ys = load(base + "bang_sled.mat").ans;
@@ -231,11 +232,11 @@ tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
 %% GREYBOX PENDULUM
 
-data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum);
+data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
 
 % Initial guesses
-Jp0 = 0.015;
-Dp0 = 0.005;
+Jp0 = 0.016;
+Dp0 = 0.008;
 
 par0 = [Jp0; Dp0];
 
@@ -246,16 +247,13 @@ sys_est = greyest(data_estimate_pendulum, sys)
 
 %%
 
-tfPend = tf(sys_est)
+
 
 %%
-y_valid = lsim(tfSledge, data_sine_sledge.InputData, data_sine_sledge.SamplingInstants);
 
-plot(data_sine_sledge.SamplingInstants, y_valid)
-figure
-plot(data_sine_sledge.SamplingInstants, data_sine_sledge.OutputData)
+tfPend = tf(sys_est)
 
-
+pzmap(tfPend)
 %% Validate sledge
 source_val = data_ramp_sledge;
  
@@ -305,7 +303,7 @@ tfPend = tfest(source, np, nz, ioDelay, Opt)
 % source_val = data_prbs_pendulum;
 
 figure
-compare(data_step_pendulum, tfPend)
+compare(data_prbs_pendulum, tfPend)
 figure
 compare(data_sine2_pendulum, tfPend)
 figure

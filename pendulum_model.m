@@ -4,10 +4,10 @@ Jp = par(1);
 Dp = par(2);
 
 % Known constants
-Lp = 0.3;
-ml = 1.0;
-mr = 0.5;
-g  = 9.81;
+Lp = 0.205;
+ml = 0.272;
+mr = 0.135;
+g  = 9.82;
 
 
 K = Lp*ml + 0.5*Lp*mr;
