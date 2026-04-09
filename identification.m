@@ -44,10 +44,8 @@
 clc;clear;
 
 Ts = 0.01;
-fc = 6;
-fc_sledge = 2;
+fc = 8;
 [b,a] = butter(2, fc * 2 * Ts);  % normalized frequency, 2nd order, butterworth filter
-[b2,a2] = butter(2, fc_sledge * 2 * Ts);
 
 base = "PC2/responses/";
 
@@ -88,7 +86,7 @@ ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
 % Filter
-plot(yp.Data)
+% plot(yp.Data)
 % hold on
 y_p_f = filtfilt(b,a,yp_i);
 
@@ -111,7 +109,6 @@ yp_i = interp1(yp.Time, yp.Data, t);
 
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
-y_s_f = filtfilt(b2,a2,ys_i);
 
 data_prbs2_sledge   = iddata(ys_i, u_i, Ts);
 data_prbs2_pendulum = iddata(y_p_f, ys_i, Ts);
@@ -218,11 +215,33 @@ y_p_f = filtfilt(b,a,yp_i);
 data_sine2_sledge   = iddata(ys_i, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
 
+
+%% === sine =========================================
+u  = load(base + "sine_in.mat").ans;
+ys = load(base + "sine_sled.mat").ans;
+yp = load(base + "sine_pend.mat").ans;
+
+tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
+tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
+t = (tmin:Ts:tmax)';
+yp.Data = yp.Data - mean(yp.Data);
+
+u_i  = interp1(u.Time,  u.Data,  t);
+ys_i = interp1(ys.Time, ys.Data, t);
+yp_i = interp1(yp.Time, yp.Data, t);
+
+% Filter
+y_p_f = filtfilt(b,a,yp_i);
+
+data_sine_sledge   = iddata(ys_i, u_i, Ts);
+data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
+
 %% Estimate tf sledge
 
-data_estimate_sledge = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
+data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_step_sledge, data_ramp_sledge);
 % source = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
-source = data_prbs_sledge;
+% data_estimate_sledge = merge(data_bang_sledge, data_step_sledge, data_prbs_sledge);
+source = data_estimate_sledge;
 
 Opt = tfestOptions('Display','on');
 np = 2;
@@ -230,30 +249,23 @@ ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
-%% GREYBOX PENDULUM
-
-data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
-
-% Initial guesses
-Jp0 = 0.016;
-Dp0 = 0.008;
-
-par0 = [Jp0; Dp0];
-
-sys = idgrey('pendulum_model', par0, 'c');
-sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
-sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
-sys_est = greyest(data_estimate_pendulum, sys)
-
 %%
+tfSledge_j = tf([4.88], [20.11 238.20 0])
 
 
 
-%%
+figure
+compare(data_prbs_sledge, tfSledge_j)
+figure
+compare(data_step_sledge, tfSledge_j)
+figure
+compare(data_bang_sledge, tfSledge_j)
+figure
+compare(data_pulse_sledge, tfSledge_j)
+figure
+compare(data_saw_sledge, tfSledge_j)
 
-tfPend = tf(sys_est)
 
-pzmap(tfPend)
 %% Validate sledge
 source_val = data_ramp_sledge;
  
@@ -266,6 +278,33 @@ figure
 plot(y_sim)
 hold on
 plot(source_val.OutputData)
+
+%%
+figure
+compare(data_prbs_sledge, tfSledge2)
+figure
+compare(data_step_sledge, tfSledge2)
+figure
+compare(data_bang_sledge, tfSledge2)
+figure
+compare(data_pulse_sledge, tfSledge2)
+figure
+compare(data_saw_sledge, tfSledge2)
+
+%%
+
+figure
+compare(data_prbs_sledge, tfSledge)
+figure
+compare(data_step_sledge, tfSledge)
+figure
+compare(data_bang_sledge, tfSledge)
+figure
+compare(data_pulse_sledge, tfSledge)
+figure
+compare(data_saw_sledge, tfSledge)
+figure
+compare(data_sine_sledge, tfSledge)
 
 %%
 
@@ -287,6 +326,28 @@ hold on
 plot(out.pend.Time, out.pend.Data*180/pi)
 legend("simulated", "real")
 
+%% GREYBOX PENDULUM
+
+% data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
+data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_pulse_pendulum, data_step_pendulum, data_sine2_pendulum, data_ramp_pendulum, data_prbs_pendulum);
+
+% Initial guesses
+Jp0 = 0.016;
+Dp0 = 0.008;
+
+par0 = [Jp0; Dp0];
+
+sys = idgrey('pendulum_model', par0, 'c');
+sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
+sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
+sys_est = greyest(data_estimate_pendulum, sys)
+
+%%
+tfPend = tf(sys_est)
+% 
+% pzmap(tfPend)
+% 
+% tf_jakob = tf([0.073 0 0], [0.015 0.002 0.7168])
 %% Estimate tf pendulum
 % source = data_prbs_pendulum;
 
@@ -303,33 +364,34 @@ tfPend = tfest(source, np, nz, ioDelay, Opt)
 % source_val = data_prbs_pendulum;
 
 figure
-compare(data_prbs_pendulum, tfPend)
+compare(data_prbs2_pendulum, tfPend)
 figure
 compare(data_sine2_pendulum, tfPend)
 figure
-compare(data_pulse_pendulum, tfPend)
+compare(data_step_pendulum, tfPend)
+
+%%
 figure
-compare(data_saw_pendulum, tfPend)
-% resid(data_bang_pendulum, tfPend)
+compare(data_prbs2_pendulum, tf_jakob)
+figure
+compare(data_sine2_pendulum, tf_jakob)
+figure
+compare(data_step_pendulum, tf_jakob)
 
 %% Validate pendulum
 % source_val = data_prbs_pendulum;
 
 figure
-compare(data_prbs_pendulum, tfPend)
-figure
-compare(data_step_pendulum, tfPend)
-figure
 compare(data_bang_pendulum, tfPend)
-figure
-compare(data_pulse_pendulum, tfPend)
-figure
-compare(data_saw_pendulum, tfPend)
+% figure
+% compare(data_step_pendulum, tfPend)
+% figure
+% compare(data_bang_pendulum, tfPend)
+% figure
+% compare(data_pulse_pendulum, tfPend)
+% figure
+% compare(data_saw_pendulum, tfPend)
 
-%%
-tfPend
-
-% tfPend2 = tf([0.073 0 0], [0.015 0.002 0.7168])
 %%
 
 figure
