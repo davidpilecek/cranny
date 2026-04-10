@@ -34,50 +34,32 @@ plot(pendulum_calib)
 pendulum_zero = mean(pendulum_calib);
 
 
-
-%% Generate PRBS
-clc;clear;
-
-MaxMissedTicks = 99^100;
-SampleTime = 0.01;
-
-T_prbs = 25;       % PRBS duration
-T_zero = 40;       % zero duration
-
-N_prbs = T_prbs / SampleTime;
-N_zero = T_zero / SampleTime;
-
-
-zero_in = zeros(N_zero, 1);
-
-
-type = 'prbs';
-Band = [0 0.08];
-prbs_in = idinput(2500, type, Band, [-1.8, 1.8]);
-
-u = [prbs_in; zero_in];
-t = (0:length(u)-1)' * SampleTime;
-
-u_ts = timeseries(u, t);
-
-plot(u_ts)
-
 %%
 
 MaxMissedTicks = 99^100;
-SampleTime = 0.001;
+SampleTime = 0.01;
+base = "mass_measurement/new/"
 
-empty = load("emptyL.mat").ans;
-l1 = load("1637L.mat").ans;
-l2 = load("2756L.mat").ans;
+empty = load(base + "empty2.mat").ans;
+l1 = load(base + "loaded2.mat").ans;
+% l2 = load(base + "loaded2.mat").ans;
 
 plot(empty)
 hold on
 plot(l1)
-hold on
-plot(l2)
+legend("E", "Loaded")
 
-legend("E", "L1", "L2")
+figure
+
+empty = load(base + "empty3.mat").ans;
+l1 = load(base + "loaded3.mat").ans;
+% l2 = load(base + "loaded2.mat").ans;
+
+plot(empty)
+hold on
+plot(l1)
+legend("E", "Loaded")
+
 
 %%
 
