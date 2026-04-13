@@ -235,8 +235,6 @@ y_p_f = filtfilt(b,a,yp_i);
 data_sine_sledge   = iddata(ys_i, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
-%%
-
 
 %% Estimate tf sledge
 
