@@ -1,83 +1,44 @@
-clc;clear;
-
-MaxMissedTicks = 99^100;
-SampleTime = 0.01;
-
-
-
-
-
-%% Calibrate distance
-counts1 = 54523;
-counts2 = 54542;
-counts3 = 54446;
-counts4 = 54535;
-
-avg = (counts1 + counts2 + counts3 + counts4)/4;
-
-ratio = floor(avg / 1.145)   % counts per cm
-
-
-
-%% Calibrate pendulum
-
-
-MaxMissedTicks = 99^100;
-SampleTime = 0.01;
-
-
-sledge_calib = out.sledge_calibrate;
-pendulum_calib = out.pendulum_calibrate;
-
-plot(pendulum_calib)
-
-pendulum_zero = mean(pendulum_calib);
-
-
-
-%% Generate PRBS
-clc;clear;
-
-MaxMissedTicks = 99^100;
-SampleTime = 0.01;
-
-T_prbs = 25;       % PRBS duration
-T_zero = 40;       % zero duration
-
-N_prbs = T_prbs / SampleTime;
-N_zero = T_zero / SampleTime;
-
-
-zero_in = zeros(N_zero, 1);
-
-
-type = 'prbs';
-Band = [0 0.08];
-prbs_in = idinput(2500, type, Band, [-1.8, 1.8]);
-
-u = [prbs_in; zero_in];
-t = (0:length(u)-1)' * SampleTime;
-
-u_ts = timeseries(u, t);
-
-plot(u_ts)
-
 %%
+clc;clear;
 
-MaxMissedTicks = 99^100;
-SampleTime = 0.001;
+M_ex = 1637; % grams of extra mass
 
-empty = load("emptyL.mat").ans;
-l1 = load("1637L.mat").ans;
-l2 = load("2756L.mat").ans;
+empty = load("empty2.mat").ans;
+l2    = load("loaded2.mat").ans;
+
+objs = [empty, l2];
+
+taus = zeros(1, length(objs));
+
+for i = 1:length(objs)
+    
+    y = objs(i).Data;
+    t = objs(i).Time;
+
+    y_final = y(end);
+
+    y_tau = 0.63 * y_final;
+
+
+    [~, idx] = min(abs(y - y_tau));
+
+
+    taus(i) = t(idx);
+
+end
+
+tau_empty = taus(1);
+tau_loaded = taus(2);
+
+M_s = floor(M_ex*tau_empty/(tau_loaded - tau_empty));
+
+disp("Mass of sledge is calculated as " + M_s + " grams")
 
 plot(empty)
 hold on
-plot(l1)
-hold on
 plot(l2)
 
-legend("E", "L1", "L2")
+legend("Empty", "Loaded")
 
 %%
 
