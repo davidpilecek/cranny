@@ -1,45 +1,3 @@
-
-% 
-% % === COMPENSATED PRBS =========================================
-% u  = load("hidden/compensated/prbs_comp_input.mat").ans;
-% ys = load("hidden/compensated/prbs_comp_sledge_cm.mat").ans;
-% yp = load("hidden/compensated/prbs_comp_pendulum_deg.mat").ans;
-% 
-% tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
-% tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
-% t = (tmin:Ts:tmax)';
-% yp.Data = yp.Data - mean(yp.Data);
-% 
-% u_i  = interp1(u.Time,  u.Data,  t);
-% ys_i = interp1(ys.Time, ys.Data, t);
-% yp_i = interp1(yp.Time, yp.Data, t);
-% 
-% % Filter
-% y_p_f = filtfilt(b,a,yp_i);
-% 
-% data_prbs_c_sledge   = iddata(ys_i, u_i, Ts);
-% data_prbs_c_pendulum = iddata(y_p_f, ys_i, Ts);
-% 
-% % === COMPENSATED RGS =========================================
-% u  = load("hidden/compensated/rgs_c_input.mat").ans;
-% ys = load("hidden/compensated/rgs_c_sledge_cm.mat").ans;
-% yp = load("hidden/compensated/rgs_c_pendulum_deg.mat").ans;
-% 
-% tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
-% tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
-% t = (tmin:Ts:tmax)';
-% yp.Data = yp.Data - mean(yp.Data);
-% 
-% u_i  = interp1(u.Time,  u.Data,  t);
-% ys_i = interp1(ys.Time, ys.Data, t);
-% yp_i = interp1(yp.Time, yp.Data, t);
-% 
-% % Filter
-% y_p_f = filtfilt(b,a,yp_i);
-% 
-% data_rgs_c_sledge   = iddata(ys_i, u_i, Ts);
-% data_rgs_c_pendulum = iddata(y_p_f, ys_i, Ts);
-
 %% Load Responses With Filter
 clc;clear;
 
@@ -48,7 +6,6 @@ fc = 8;
 [b,a] = butter(2, fc * 2 * Ts);  % normalized frequency, 2nd order, butterworth filter
 
 base = "PC2/responses/";
-
 
 % === BANG ======================================
 u  = load(base + "bang_in.mat").ans;
