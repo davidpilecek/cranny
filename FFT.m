@@ -1,4 +1,4 @@
-clc;clear;
+
 Ts = 0.01;
 fs = 1/Ts;
 
@@ -23,19 +23,24 @@ ylabel("Power/Frequency (dB/Hz)")
 %% 1. Design and Apply the Notch Filter
 % Identify the peak frequency from your current plot (e.g., 1.2 Hz)
 f_notch = 1.08; 
-Q = 10; % Quality factor: higher = narrower notch
-[num, den] = iirnotch(f_notch/(fs/2), f_notch/(fs/2/Q));
+Q = 1; % Quality factor: higher = narrower notch
+w0 = f_notch/(fs/2);   % normalized frequency
+bw = w0 / Q;
+
+[num, den] = iirnotch(w0, bw);
 
 % Filter the time-domain data
 x_filtered = filter(num, den, x);
 
+H = tf(num, den, 1/fs)
+bodeplot(H, {0.1, 100})
 %% 2. Calculate PSD for the Filtered Signal
 xdft_filt = fft(x_filtered);
 xdft_filt = xdft_filt(1:floor(N/2)+1);
 psdx_filt = (1/(fs*N)) * abs(xdft_filt).^2;
 psdx_filt(2:end-1) = 2*psdx_filt(2:end-1);
 
-%% 3. Visualization
+% 3. Visualization
 figure;
 hold on;
 plot(freq, pow2db(psdx), 'LineWidth', 1, 'DisplayName', 'Original Signal');
