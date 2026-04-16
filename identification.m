@@ -21,7 +21,6 @@ u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
 
-
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 
@@ -193,44 +192,41 @@ y_p_f = filtfilt(b,a,yp_i);
 data_sine_sledge   = iddata(ys_i, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
+
 %% Estimate tf sledge
 
-data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_step_sledge, data_ramp_sledge);
+data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge);
 % source = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
 % data_estimate_sledge = merge(data_bang_sledge, data_step_sledge, data_prbs_sledge);
 source = data_estimate_sledge;
 
 Opt = tfestOptions('Display','on');
+Opt.InitialCondition = 'zero';
+Opt.SearchOptions.MaxIterations = 40;
+
 np = 2;
 ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 
 %%
+
 tfSledge_j = tf([4.88], [20.11 238.20 0])
 
-
-
-figure
-compare(data_prbs_sledge, tfSledge_j)
-figure
-compare(data_step_sledge, tfSledge_j)
-figure
-compare(data_bang_sledge, tfSledge_j)
-figure
-compare(data_pulse_sledge, tfSledge_j)
-figure
-compare(data_saw_sledge, tfSledge_j)
-
-
 %% Validate sledge
-source_val = data_ramp_sledge;
- 
+source_val = data_step_sledge;
 figure
 compare(source_val, tfSledge)
 t = (0:length(source_val.InputData)-1)' * Ts;
 
 y_sim = lsim(tfSledge, source_val.InputData, t);
+figure
+plot(y_sim)
+hold on
+plot(source_val.OutputData)
+
+%%
+y_sim = lsim(tfSledge, source_val.InputData, t, x0);
 figure
 plot(y_sim)
 hold on
@@ -251,7 +247,7 @@ compare(data_saw_sledge, tfSledge2)
 %%
 
 figure
-compare(data_prbs_sledge, tfSledge)
+compare(data_prbs2_sledge, tfSledge)
 figure
 compare(data_step_sledge, tfSledge)
 figure
@@ -297,14 +293,26 @@ par0 = [Jp0; Dp0];
 sys = idgrey('pendulum_model', par0, 'c');
 sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
 sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
-sys_est = greyest(data_estimate_pendulum, sys)
 
-%%
+opt = greyestOptions;
+opt.Display = "on";
+opt.InitialState = 'zero';
+
+sys_est = greyest(data_estimate_pendulum, sys, opt);
 tfPend = tf(sys_est)
-% 
-% pzmap(tfPend)
-% 
-% tf_jakob = tf([0.073 0 0], [0.015 0.002 0.7168])
+
+%% Validate pendulum
+source_val_pend = data_step_pendulum;
+figure
+compare(source_val_pend, tfPend)
+t = (0:length(source_val_pend.InputData)-1)' * Ts;
+
+y_sim = lsim(tfPend, source_val_pend.InputData, t);
+figure
+plot(y_sim)
+hold on
+plot(source_val_pend.OutputData)
+
 %% Estimate tf pendulum
 % source = data_prbs_pendulum;
 
@@ -326,6 +334,7 @@ figure
 compare(data_sine2_pendulum, tfPend)
 figure
 compare(data_step_pendulum, tfPend)
+plot(ls)
 
 %%
 figure
