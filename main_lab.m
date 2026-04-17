@@ -2,6 +2,13 @@
 MaxMissedTicks = 99^100;
 SampleTime = 0.01;
 
+%%
+
+out.pend_zero
+out.sledge_ratio
+
+
+
 
 %% Calibrate distance
 counts1 = 54523;
