@@ -52,3 +52,45 @@ ylabel("Power/Frequency (dB/Hz)");
 legend('Location', 'northeast');
 xlim([0 5]); % Focus on the pendulum resonance area
 hold off;
+
+%%
+
+% --- Noise Characterization Script ---
+% Load your experimental data (time in column 1, angle in column 2)
+ts = load("PC2\responses\ramp_pend.mat").ans;
+
+t_end = ts.Time(end);
+t_start = t_end - 8;
+
+idx = ts.Time >= t_start;
+
+ts_last = timeseries(ts.Data(idx), ts.Time(idx));
+plot(ts_last)
+
+data = ts_last;
+
+%%
+Ts = 0.01;
+time = data.Time;
+raw_angle = data.Data;
+
+% 1. Calculate the mean (the actual steady-state angle)
+mu = mean(raw_angle);
+
+% 2. Extract the noise component (zero-mean)
+noise_signal = raw_angle - mu;
+
+% 3. Calculate Variance (This is what Simulink needs!)
+noise_variance = var(noise_signal)
+
+% 4. Visualization for your report
+subplot(2,1,1);
+plot(time, raw_angle);
+title('Raw Potentiometer Signal (Static)');
+ylabel('Angle (rad)');
+
+subplot(2,1,2);
+histogram(noise_signal, 50);
+title('Noise Distribution (Should look Bell-Shaped/Gaussian)');
+
+power = noise_variance * Ts
