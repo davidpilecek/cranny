@@ -195,9 +195,7 @@ data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
 %% Estimate tf sledge
 
-data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge);
-% source = merge(data_step_sledge, data_ramp_sledge, data_bang_sledge, data_saw_sledge);
-% data_estimate_sledge = merge(data_bang_sledge, data_step_sledge, data_prbs_sledge);
+data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
 source = data_estimate_sledge;
 
 Opt = tfestOptions('Display','on');
