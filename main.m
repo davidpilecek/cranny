@@ -1,52 +1,3 @@
-clc;clear
-Ts = 0.01;
-
-u = load("new_responses\prbs1_input.mat").ans.Data;
-y = load("new_responses\prbs1_sledge.mat").ans.Data;
-p = load("new_responses\prbs1_pendulum.mat").ans.Data;
-p = p - mean(p);
-pend1 = iddata(p, y, Ts);
-sledge1 = iddata(y, u, Ts);
-
-u2 = load("new_responses\prbs2_input.mat").ans.Data;
-y2 = load("new_responses\prbs2_sledge.mat").ans.Data;
-sledge2 = iddata(y2, u2, Ts);
-p2 = load("new_responses\prbs2_pendulum.mat").ans.Data;
-p2 = p2 - mean(p2);
-pend2 = iddata(p2, y2, Ts);
-
-u3 = load("new_responses\prbs3_input.mat").ans.Data;
-y3 = load("new_responses\prbs3_sledge.mat").ans.Data;
-sledge3 = iddata(y3, u3, Ts);
-p3 = load("new_responses\prbs3_pendulum.mat").ans.Data;
-p3 = p3 - mean(p3);
-pend3 = iddata(p3, y3, Ts);
-
-
-u4 = load("old_responses\2_input.mat").ans.Data;
-y4 = load("old_responses\2_sledge.mat").ans.Data;
-data4 = iddata(y4, u4, Ts);
-p4 = load("old_responses\2_pendulum.mat").ans.Data;
-p4 = p4 - mean(p4);
-pend4 = iddata(p4, y4, Ts);
-
-
-u5 = load("old_responses\4_input.mat").ans.Data;
-y5 = load("old_responses\4_sledge.mat").ans.Data;
-sledge5 = iddata(y5, u5, Ts);
-p5 = load("old_responses\4_pendulum.mat").ans.Data;
-p5 = p5-mean(p5);
-pend5 = iddata(p5, y5, Ts);
-
-data = load("old_responses\4_sledge.mat");
-
-t = data.ans.Time;
-y = abs(data.ans.Data);
-u = u5
-% t_new = 0:0.01:max(t);   % uniform time grid
-
-% y_interp = interp1(t, y, t_new, 'linear');
-
 %% Load data
 clc;clear;
 % data = load("old_responses\2_sledge.mat");
@@ -83,59 +34,53 @@ plot(t, smoothed_position, 'b', 'LineWidth', 1.5, 'DisplayName', 'Filtered Data'
 title('Effect of Butterworth Filtering on Encoder Steps');
 xlabel('Time (s)'); ylabel('Position (cm)');
 legend; grid on;
-%% Parameters
-s = tf('s')
+%%
 
-syms k_t m_s D_m J_m D_s
 
-theta = [k_t, m_s, D_m, J_m, D_s];
+G = tf([0.4857], [1, 13.79, 0.01658])
+G2 = tf([4.739 0 0], [1 0.09515 46.54])
 
-function y = model_output(theta, t, u)
-    
-    R_a = 3.9;	    % armature winding resistance (Ohm) 4.27
-    r_m = 0.007;		% belt wheel radius (m) 0.007
+sys = G*G2
+C_pid = pid(20, 0.01, 0, 10)
+C = tf(C_pid)
+L = C*sys
 
-    k_t = theta(1);
-    m_s = theta(2); 
-    D_m = theta(3); 
-    J_m = theta(4);
-    D_s = theta(5);
-    k_e = k_t;
 
-    s = tf('s');
+margin(L)
 
-    k1 = k_t/(r_m*R_a);
-    k2 = (m_s + J_m/r_m^2);
-    k3 = k_t*k_e/r_m^2*R_a + D_m/r_m^2 + D_s;
-    
-    G_sledge = k1 / (k2*s^2 + k3*s);
+%%
+P1 = 10;
+P2 = 5;
+I1 = 0;
+I2 = 0;
+D1 = 0.01;
+D2 = 0;
 
-    y = lsim(G_sledge, u, t);
+N1 = 50;
+N2 = 0;
 
-end
 
-function err = cost_function(theta, t, u, y_meas)
-    y_model = model_output(theta, t, u);
+G_angle = tf([4.739 0 0], [1 0.09515 46.54])
+G_pos = tf([0.4857], [1, 13.79, 0.01658]);
 
-    % residuals (IMPORTANT: return vector, not scalar)
-    err = y_meas - y_model;
-end
-    
-theta0 = [1, 1, 1, 1, 1]; % initial guess
+C_inner = pid(P1, I1, D1, N1); % Pendulum Controller
+C_outer = pid(P2, I2, D2, N2); % Sled Position Controller
 
-options = optimoptions('lsqnonlin', ...
-    'Display', 'iter', ...
-    'MaxFunctionEvaluations', 500);
+% 2. Define your Plant Models (Linearized)
+% G_angle: Force to Angle | G_pos: Force to Position
+% (These come from your first-principles modelling)
 
-theta_est = lsqnonlin(@(theta) cost_function(theta, t, u, y), ...
-                      theta0, [], [], options);
+% 3. Build the Inner Closed Loop
+% This represents the "stabilized" pendulum
+L_inner = C_inner * G_angle;
+T_inner = feedback(L_inner, 1);
 
-disp(theta_est)
+% 4. Build the Total Cascade Closed Loop
+% The outer controller sees the inner loop as part of its "plant"
+L_outer = C_outer * T_inner * G_pos;
+T_total = feedback(L_outer, 1);
 
-% y_valid = load("new_responses\prbs3_sledge.mat").ans.Data;
-% 
-% u_valid = load("new_responses\prbs3_input.mat").ans.Data;
-% t_valid = load("new_responses\prbs3_sledge.mat").ans.Time;
+margin(T_total)
 
 %%
 y_valid = load("responses_25_3\sine_sledge.mat").ans.Data;
