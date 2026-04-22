@@ -196,7 +196,7 @@ data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 %% Estimate tf sledge
 
 data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_estimate_sledge;
+source = data_step_sledge;
 
 Opt = tfestOptions('Display','on');
 Opt.InitialCondition = 'zero';
@@ -212,7 +212,7 @@ tfSledge = tfest(source, np, 0, ioDelay, Opt)
 tfSledge_j = tf([4.88], [20.11 238.20 0])
 
 %% Validate sledge
-source_val = data_step_sledge;
+source_val = data_prbs_sledge;
 figure
 compare(source_val, tfSledge)
 t = (0:length(source_val.InputData)-1)' * Ts;
