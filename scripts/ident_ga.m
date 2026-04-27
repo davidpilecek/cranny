@@ -172,7 +172,7 @@ data_sine2_sledge   = iddata(ys_i, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
 
 
-%% === sine =========================================
+% === sine =========================================
 u  = load(base + "sine_in.mat").ans;
 ys = load(base + "sine_sled.mat").ans;
 yp = load(base + "sine_pend.mat").ans;
@@ -192,172 +192,102 @@ y_p_f = filtfilt(b,a,yp_i);
 data_sine_sledge   = iddata(ys_i, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
-
-%% Estimate tf sledge
-
-data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_step_sledge;
-
-Opt = tfestOptions('Display','on');
-Opt.InitialCondition = 'zero';
-Opt.SearchOptions.MaxIterations = 40;
-
-np = 2;
-ioDelay = delayest(source) * Ts;
-
-tfSledge = tfest(source, np, 0, ioDelay, Opt)
-
 %%
 
-tfSledge_j = tf([4.88], [20.11 238.20 0])
+function dtheta = pendulum_ode(t, y, p, t_data, a_data)
+    % y(1) = theta, y(2) = theta_dot
+    % p(1) = Jp, p(2) = Dp
+    
+    Jp = p(1);
+    Dp = p(2);
+   
+    % Known constants
+    Lp = 0.205;
+    ml = 0.272;
+    mr = 0.135;
+    g  = 9.82;
+    
+    % Interpolate the measured acceleration at time 't'
+    x_ddot = interp1(t_data, a_data, t, 'linear', 'extrap');
+    
+    % Common term K
+    K = (Lp * ml + 0.5 * Lp * mr);
+    
+    % The ODE solved for theta_ddot:
+    % Jp*ddtheta = K*x_ddot - K*g*theta - Dp*dtheta
+    theta_ddot = (K * x_ddot - K * g * y(1) - Dp * y(2)) / Jp;
+    
+    dtheta = [y(2); theta_ddot];
+end
 
-%% Validate sledge
-source_val = data_prbs_sledge;
-figure
-compare(source_val, tfSledge)
-t = (0:length(source_val.InputData)-1)' * Ts;
+function score = my_fitness(p, t_data, a_data, measured_theta)
 
-y_sim = lsim(tfSledge, source_val.InputData, t);
-figure
-plot(y_sim)
-hold on
-plot(source_val.OutputData)
-
-%%
-y_sim = lsim(tfSledge, source_val.InputData, t, x0);
-figure
-plot(y_sim)
-hold on
-plot(source_val.OutputData)
-
-%%
-figure
-compare(data_prbs_sledge, tfSledge2)
-figure
-compare(data_step_sledge, tfSledge2)
-figure
-compare(data_bang_sledge, tfSledge2)
-figure
-compare(data_pulse_sledge, tfSledge2)
-figure
-compare(data_saw_sledge, tfSledge2)
-
-%%
-
-figure
-compare(data_prbs2_sledge, tfSledge)
-figure
-compare(data_step_sledge, tfSledge)
-figure
-compare(data_bang_sledge, tfSledge)
-figure
-compare(data_pulse_sledge, tfSledge)
-figure
-compare(data_saw_sledge, tfSledge)
-figure
-compare(data_sine_sledge, tfSledge)
+    % Initial conditions: [initial_angle, initial_angular_velocity]
+    % If unknown, you can add these to 'p' for the GA to find!
+    y0 = [0; 0]; 
+    
+    try
+        % Pass t_data and a_data into the ODE function
+        [~, y_sim] = ode45(@(t, y) pendulum_ode(t, y, p, t_data, a_data), t_data, y0);
+        
+        % Calculate error (Residual Sum of Squares)
+        error = measured_theta - y_sim(:,1);
+        score = sum(error.^2); 
+    catch
+        score = 1e8; % Penalty for unstable parameters
+    end
+end
 
 %%
+% --- 1. LOAD YOUR DATA ---
+% Replace these with your actual measured vectors
 
-sledge_resp = lsim(tfSledge, out.input_sim.Data, out.input_sim.Time);
-pend_resp = lsim(tfPend2, out.sledge.Data, out.sledge.Time);
+source = data_prbs_pendulum;
+t_data = source.SamplingInstants;
+x_data = source.InputData;
+measured_theta = source.OutputData;
 
-figure
-plot(out.sledge.Time, sledge_resp)
-hold on
-plot(out.sledge)
-legend("simulated", "real")
+% Assuming 't_data' and 'x_data' are your measured vectors
+dt = t_data(2) - t_data(1); 
+v_data = gradient(x_data, dt);      % Velocity
+a_data = gradient(v_data, dt);     % Acceleration (x_ddot)
 
-figure
-plot(out.input_sim)
+% plot(t_data, v_data)
+% hold on 
+% plot(t_data, x_data)
 
-figure
-plot(out.pend.Time, pend_resp)
-hold on
-plot(out.pend.Time, out.pend.Data*180/pi)
-legend("simulated", "real")
+%% GA
 
-%% GREYBOX PENDULUM
+% --- 3. GA CONFIGURATION ---
+% Parameters: [Jp, Dp]
+nVars = 2;
+lb = [0.001, 0.0001]; % Lower bounds
+ub = [0.1,   0.05];   % Upper bounds (adjust based on your system scale)
 
-% data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
-data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_pulse_pendulum, data_step_pendulum, data_sine2_pendulum, data_ramp_pendulum, data_prbs_pendulum);
+options = optimoptions('ga', ...
+    'Display', 'iter', ...
+    'PlotFcn', @gaplotbestf, ... % Shows the "Evolution" progress
+    'PopulationSize', 50, ...
+    'MaxGenerations', 200);
 
-% Initial guesses
-Jp0 = 0.016;
-Dp0 = 0.008;
+% --- 4. RUN OPTIMIZATION ---
+% We pass the data into the fitness function using an anonymous function
+fitness_handle = @(p) my_fitness(p, t_data, a_data, measured_theta);
 
-par0 = [Jp0; Dp0];
+fprintf('Starting GA... this may take a minute.\n');
+[best_params, min_error] = ga(fitness_handle, nVars, [], [], [], [], lb, ub, [], options);
 
-sys = idgrey('pendulum_model', par0, 'c');
-sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
-sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
+% --- 5. SHOW RESULTS ---
+fprintf('\nBest Jp: %.6f\n', best_params(1));
+fprintf('Best Dp: %.6f\n', best_params(2));
 
-opt = greyestOptions;
-opt.Display = "on";
-opt.InitialState = 'zero';
+% Run one last simulation with best params to plot
+y0 = [measured_theta(1); 0];
+[~, y_best] = ode45(@(t, y) pendulum_ode(t, y, best_params, t_data, a_data), t_data, y0);
 
-sys_est = greyest(data_estimate_pendulum, sys, opt);
-tfPend = tf(sys_est)
+figure;
+plot(t_data, measured_theta, 'k', 'DisplayName', 'Measured'); hold on;
+plot(t_data, y_best(:,1), 'r--', 'LineWidth', 2, 'DisplayName', 'GA Optimized Model');
+title('Comparison: Measured vs. GA Model');
+legend; grid on;
 
-%% Validate pendulum
-source_val_pend = data_step_pendulum;
-figure
-compare(source_val_pend, tfPend)
-t = (0:length(source_val_pend.InputData)-1)' * Ts;
-
-y_sim = lsim(tfPend, source_val_pend.InputData, t);
-figure
-plot(y_sim)
-hold on
-plot(source_val_pend.OutputData)
-
-%% Estimate tf pendulum
-% source = data_prbs_pendulum;
-
-Opt = tfestOptions('Display','on');
-np = 2;
-nz = 2;
-
-source = merge(data_prbs_pendulum, data_bang_pendulum, data_saw_pendulum, data_sine2_pendulum);
-% source = data_prbs_pendulum;
-ioDelay = delayest(source) * Ts
-tfPend = tfest(source, np, nz, ioDelay, Opt)
-
-%% Validate pendulum
-tfPend2 = tf([4.739 0 0], [1 0.09515 46.54])
-
-Lp = 0.205;
-ml = 0.272;
-mr = 0.135;
-g  = 9.82;
-
-% Jp = 0.014659;
-% Dp = 0.001211;
-
-Jp = 0.014730;
-Dp = 0.001075;
-
-num = [Lp*ml + 0.5*Lp*mr 0 0];
-den = [Jp Dp (Lp*ml + 0.5*Lp*mr)*g];
-
-tfPend_ga = tf(num, den)
-% rlocus(tfPend_ga)
-%%
-rlocus(tfPend2)
-%%
-figure
-compare(data_prbs2_pendulum, tfPend2)
-figure
-compare(data_prbs2_pendulum, tfPend_ga)
-figure
-compare(data_bang_pendulum, tfPend2)
-figure
-compare(data_bang_pendulum, tfPend_ga)
-figure
-compare(data_pulse_pendulum, tfPend2)
-figure
-compare(data_pulse_pendulum, tfPend_ga)
-figure
-compare(data_saw_pendulum, tfPend2)
-figure
-compare(data_saw_pendulum, tfPend_ga)

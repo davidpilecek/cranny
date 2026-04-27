@@ -172,7 +172,7 @@ data_sine2_sledge   = iddata(ys_i, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
 
 
-%% === sine =========================================
+% === sine =========================================
 u  = load(base + "sine_in.mat").ans;
 ys = load(base + "sine_sled.mat").ans;
 yp = load(base + "sine_pend.mat").ans;
@@ -192,172 +192,72 @@ y_p_f = filtfilt(b,a,yp_i);
 data_sine_sledge   = iddata(ys_i, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
+%%
+source = data_step_pendulum;
+t = source.SamplingInstants;
+t_start = 1.5;
+t_end = 46.5;
 
-%% Estimate tf sledge
+idx = t >= t_start & t<=t_end;
 
-data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_step_sledge;
+% Extract data
+raw_data = source.OutputData(idx);
+t_new = t(idx);
 
-Opt = tfestOptions('Display','on');
-Opt.InitialCondition = 'zero';
-Opt.SearchOptions.MaxIterations = 40;
+% --- THE CRITICAL STEP: Remove the Offset ---
+% Subtract the mean or the last value to center the oscillation around zero
+steady_state = mean(raw_data(end-50:end)); % Average of the last few points
+data = raw_data - steady_state; 
 
-np = 2;
-ioDelay = delayest(source) * Ts;
+%% Pendulum Damping Calculation
+fs = 1/mean(diff(t_new)); % Calculate actual sample rate from time vector
 
-tfSledge = tfest(source, np, 0, ioDelay, Opt)
+% 1. Find Peaks 
+% We use abs(data) if you want to include troughs, 
+% but standard log dec uses successive positive peaks.
+[pks, locs] = findpeaks(data, t_new, 'MinPeakDistance', 0.1); 
+
+if length(pks) < 2
+    error('Not enough peaks found. Adjust MinPeakDistance or check data.');
+end
+
+% 2. Calculate Logarithmic Decrement (delta)
+n = length(pks) - 1; 
+x1 = pks(1);
+xn_plus_1 = pks(end);
+
+% Ensure we aren't taking the log of a negative number
+delta = (1/n) * log(abs(x1) / abs(xn_plus_1));
+
+% 3. Calculate Damping Ratio (zeta)
+zeta_calc = delta / sqrt(4*pi^2 + delta^2);
+
+% 4. Frequency Calculation
+total_time = locs(end) - locs(1);
+Td = total_time / n;            
+fd_calc = 1 / Td;               
+fn_calc = fd_calc / sqrt(1 - zeta_calc^2);
+
+% 5. Results
+fprintf('--- Results ---\n');
+fprintf('Log Dec (delta): %.4f\n', delta);
+fprintf('Damping (zeta):  %.4f\n', zeta_calc);
+fprintf('Nat Freq (fn):   %.4f Hz\n', fn_calc);
+
+% 6. Visualization
+figure;
+plot(t_new, data, 'b'); hold on;
+plot(locs, pks, 'ro', 'MarkerFaceColor', 'r');
+yline(0, 'k--'); % Show the new zero center
+title(['Centered Signal: f_n = ', num2str(fn_calc, 4), ' Hz']);
+grid on;
 
 %%
 
-tfSledge_j = tf([4.88], [20.11 238.20 0])
+s = tf('s');
 
-%% Validate sledge
-source_val = data_prbs_sledge;
-figure
-compare(source_val, tfSledge)
-t = (0:length(source_val.InputData)-1)' * Ts;
+fn_rad = 2*pi*fn_calc;
 
-y_sim = lsim(tfSledge, source_val.InputData, t);
-figure
-plot(y_sim)
-hold on
-plot(source_val.OutputData)
+tfPend = tf([fn_rad^2/9.18 0 0], [1 2*zeta_calc*fn_rad fn_rad^2])
 
-%%
-y_sim = lsim(tfSledge, source_val.InputData, t, x0);
-figure
-plot(y_sim)
-hold on
-plot(source_val.OutputData)
-
-%%
-figure
-compare(data_prbs_sledge, tfSledge2)
-figure
-compare(data_step_sledge, tfSledge2)
-figure
-compare(data_bang_sledge, tfSledge2)
-figure
-compare(data_pulse_sledge, tfSledge2)
-figure
-compare(data_saw_sledge, tfSledge2)
-
-%%
-
-figure
-compare(data_prbs2_sledge, tfSledge)
-figure
-compare(data_step_sledge, tfSledge)
-figure
-compare(data_bang_sledge, tfSledge)
-figure
-compare(data_pulse_sledge, tfSledge)
-figure
-compare(data_saw_sledge, tfSledge)
-figure
-compare(data_sine_sledge, tfSledge)
-
-%%
-
-sledge_resp = lsim(tfSledge, out.input_sim.Data, out.input_sim.Time);
-pend_resp = lsim(tfPend2, out.sledge.Data, out.sledge.Time);
-
-figure
-plot(out.sledge.Time, sledge_resp)
-hold on
-plot(out.sledge)
-legend("simulated", "real")
-
-figure
-plot(out.input_sim)
-
-figure
-plot(out.pend.Time, pend_resp)
-hold on
-plot(out.pend.Time, out.pend.Data*180/pi)
-legend("simulated", "real")
-
-%% GREYBOX PENDULUM
-
-% data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
-data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_pulse_pendulum, data_step_pendulum, data_sine2_pendulum, data_ramp_pendulum, data_prbs_pendulum);
-
-% Initial guesses
-Jp0 = 0.016;
-Dp0 = 0.008;
-
-par0 = [Jp0; Dp0];
-
-sys = idgrey('pendulum_model', par0, 'c');
-sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
-sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
-
-opt = greyestOptions;
-opt.Display = "on";
-opt.InitialState = 'zero';
-
-sys_est = greyest(data_estimate_pendulum, sys, opt);
-tfPend = tf(sys_est)
-
-%% Validate pendulum
-source_val_pend = data_step_pendulum;
-figure
-compare(source_val_pend, tfPend)
-t = (0:length(source_val_pend.InputData)-1)' * Ts;
-
-y_sim = lsim(tfPend, source_val_pend.InputData, t);
-figure
-plot(y_sim)
-hold on
-plot(source_val_pend.OutputData)
-
-%% Estimate tf pendulum
-% source = data_prbs_pendulum;
-
-Opt = tfestOptions('Display','on');
-np = 2;
-nz = 2;
-
-source = merge(data_prbs_pendulum, data_bang_pendulum, data_saw_pendulum, data_sine2_pendulum);
-% source = data_prbs_pendulum;
-ioDelay = delayest(source) * Ts
-tfPend = tfest(source, np, nz, ioDelay, Opt)
-
-%% Validate pendulum
-tfPend2 = tf([4.739 0 0], [1 0.09515 46.54])
-
-Lp = 0.205;
-ml = 0.272;
-mr = 0.135;
-g  = 9.82;
-
-% Jp = 0.014659;
-% Dp = 0.001211;
-
-Jp = 0.014730;
-Dp = 0.001075;
-
-num = [Lp*ml + 0.5*Lp*mr 0 0];
-den = [Jp Dp (Lp*ml + 0.5*Lp*mr)*g];
-
-tfPend_ga = tf(num, den)
-% rlocus(tfPend_ga)
-%%
-rlocus(tfPend2)
-%%
-figure
-compare(data_prbs2_pendulum, tfPend2)
-figure
-compare(data_prbs2_pendulum, tfPend_ga)
-figure
-compare(data_bang_pendulum, tfPend2)
-figure
-compare(data_bang_pendulum, tfPend_ga)
-figure
-compare(data_pulse_pendulum, tfPend2)
-figure
-compare(data_pulse_pendulum, tfPend_ga)
-figure
-compare(data_saw_pendulum, tfPend2)
-figure
-compare(data_saw_pendulum, tfPend_ga)
+% G = ((fn_rad^2/9.18)*s^2) / (s^2 + 2*zeta_calc*fn_rad*s + fn_rad^2);
