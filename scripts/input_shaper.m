@@ -15,8 +15,8 @@ mode = "manual";
 
 if mode == "manual"
     % ---- MANUAL INPUT ----
-    wn = 1.2;        % natural frequency [rad/s]
-    zeta = 0.02;     % damping ratio [-]
+    wn = 5;        % natural frequency [rad/s]
+    zeta = 0.007;     % damping ratio [-]
 
 elseif mode == "data"
     % ---- LOAD YOUR DATA ----
@@ -46,13 +46,9 @@ else
     error("Invalid mode selected");
 end
 
-%% =========================
-% 3) DERIVED PARAMETERS
-% ==========================
-
 wd = wn * sqrt(1 - zeta^2);
 
-K = exp(-zeta * pi / sqrt(1 - zeta^2));
+K = exp(-zeta * pi / sqrt(1 - zeta^2))
 
 %% =========================
 % 4) ZVD SHAPER COEFFICIENTS
