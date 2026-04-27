@@ -1,3 +1,13 @@
+%% random stuff
+
+wn = sqrt(46.54)
+
+a2 = 0.09515;
+
+zeta = 0.09515/(2*wn)
+
+
+
 %% Load data
 clc;clear;
 % data = load("old_responses\2_sledge.mat");
