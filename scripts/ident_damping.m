@@ -195,37 +195,38 @@ data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 %%
 source = data_step_pendulum;
 t = source.SamplingInstants;
+
 t_start = 1.5;
 t_end = 46.5;
+idx = t >= t_start & t <= t_end;
 
-idx = t >= t_start & t<=t_end;
-
-% Extract data
+% 1. Extract raw data
 raw_data = source.OutputData(idx);
-t_new = t(idx);
+t_raw = t(idx); % This still starts at 1.5
 
-% --- THE CRITICAL STEP: Remove the Offset ---
-% Subtract the mean or the last value to center the oscillation around zero
-steady_state = mean(raw_data(end-50:end)); % Average of the last few points
+% 2. --- THE SHIFT ---
+% Subtract the first value so the vector starts at 0.000
+t_zeroed = t_raw - t_raw(1); 
+
+% 3. --- THE OFFSET REMOVAL ---
+steady_state = mean(raw_data(end-50:end)); 
 data = raw_data - steady_state; 
 
 %% Pendulum Damping Calculation
+t_new = t_zeroed;
 fs = 1/mean(diff(t_new)); % Calculate actual sample rate from time vector
 
 % 1. Find Peaks 
 % We use abs(data) if you want to include troughs, 
 % but standard log dec uses successive positive peaks.
-[pks, locs] = findpeaks(data, t_new, 'MinPeakDistance', 0.1); 
-
-if length(pks) < 2
-    error('Not enough peaks found. Adjust MinPeakDistance or check data.');
-end
+[pks, locs] = findpeaks(data, t_new, 'MinPeakDistance', 0.8); 
 
 % 2. Calculate Logarithmic Decrement (delta)
 n = length(pks) - 1; 
 x1 = pks(1);
 xn_plus_1 = pks(end);
 
+A_init = pks(1);
 % Ensure we aren't taking the log of a negative number
 delta = (1/n) * log(abs(x1) / abs(xn_plus_1));
 
@@ -244,13 +245,29 @@ fprintf('Log Dec (delta): %.4f\n', delta);
 fprintf('Damping (zeta):  %.4f\n', zeta_calc);
 fprintf('Nat Freq (fn):   %.4f Hz\n', fn_calc);
 
+T_avg = mean(diff(locs)); % Average period
+fn_est = 1 / T_avg;       % Frequency in Hz
+wn_est = 2 * pi * fn_est; % Frequency in rad/s
+
+% Use locs(1) to find the exact time of the first peak
+t_first_peak = locs(1); 
+sigma = zeta_calc * wn_est;
+% Calculate the envelope starting from the first peak's time
+upper_env = A_init * exp(-sigma * (t_new - t_first_peak));
+lower_env = -A_init * exp(-sigma * (t_new - t_first_peak));
+
 % 6. Visualization
 figure;
-plot(t_new, data, 'b'); hold on;
-plot(locs, pks, 'ro', 'MarkerFaceColor', 'r');
+plot(t_new, data, 'b', linewidth=1.3); hold on;
+% Plot the peaks to show the fit
+plot(locs, pks, 'o', 'MarkerFaceColor', [0.5 0 0.8], 'DisplayName', 'Measured Peaks'); hold on;
 yline(0, 'k--'); % Show the new zero center
-title(['Centered Signal: f_n = ', num2str(fn_calc, 4), ' Hz']);
 grid on;
+
+% % Plot the envelopes
+plot(t_new, upper_env, 'r--', 'LineWidth', 3, 'DisplayName', 'Upper Envelope');
+plot(t_new, lower_env, 'r--', 'LineWidth', 3, 'HandleVisibility', 'off');
+
 
 %%
 
@@ -260,4 +277,4 @@ fn_rad = 2*pi*fn_calc;
 
 tfPend = tf([fn_rad^2/9.18 0 0], [1 2*zeta_calc*fn_rad fn_rad^2])
 
-% G = ((fn_rad^2/9.18)*s^2) / (s^2 + 2*zeta_calc*fn_rad*s + fn_rad^2);
+% G = ((fn_rad^2/9.18)*s^2) / (s^2 + 2*zeta_calc*fn_rad*s + fn_rad^2

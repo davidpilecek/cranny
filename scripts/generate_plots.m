@@ -1,11 +1,4 @@
-
 base = "plots/";
-
-% 1. Data
-x = data_prbs_sledge.SamplingInstants;
-y1 = data_prbs_sledge.InputData;
-y2 = data_prbs_sledge.OutputData;
-y3 = data_prbs_pendulum.OutputData;
 
 % 2. Figure Setup
 figWidth = 35; 
@@ -16,32 +9,35 @@ hold on; grid on;
 
 % 3. Plotting with Style
 % Use distinct colors and thicker lines
-p1 = plot(x, y1, 'LineWidth', 1.3, 'Color', [0 0 0], 'DisplayName', 'Signal $A$');
-% p1 = plot(x, y2, 'LineWidth', 1.3, 'Color', "b", 'DisplayName', 'Signal $A$');
-% p1 = plot(x, y3, 'LineWidth', 1.3, 'Color', "r", 'DisplayName', 'Signal $A$');
+p1 = plot(t_new,data, 'b', linewidth=1.3); hold on;
+
+% Plot the peaks to show the fit
+plot(locs, pks, 'o', 'MarkerFaceColor', [0.5 0 0.8], 'DisplayName', 'Measured Peaks'); hold on;
+yline(0, 'k--'); % Show the new zero center
+grid on;
+
+% Plot the envelopes
+plot(t_new, upper_env, 'r--', 'LineWidth', 3, 'DisplayName', 'Upper Envelope');
+plot(t_new, lower_env, 'r--', 'LineWidth', 3, 'HandleVisibility', 'off');
 
 % 4. LaTeX Formatting & Axes properties
 set(gca, ...
     'TickLabelInterpreter', 'latex', ...
-    'FontSize', 18, ...
+    'FontSize', 10, ...
     'FontName', 'Times New Roman', ... % Standard for academic journals
     'Box', 'on', ...
     'LineWidth', 1.2);
 
 % Labels with LaTeX syntax
-xlabel('\textbf{Time (s)}', 'Interpreter', 'latex', 'FontSize', 22);
-ylabel('\textbf{Voltage (V)}', 'Interpreter', 'latex', 'FontSize', 22);
-% ylabel('\textbf{Position (m)}', 'Interpreter', 'latex', 'FontSize', 22);
-% ylabel('\textbf{Angle (rad)}', 'Interpreter', 'latex', 'FontSize', 22);
-% title('\textbf{Input Signal}', 'Interpreter', 'latex', 'FontSize', 14);
+xlabel('\textbf{Time (s)}', 'Interpreter', 'latex', 'FontSize', 20);
+ylabel('\textbf{Angle (rad)}', 'Interpreter', 'latex', 'FontSize', 20);
 
-% Legend
-% lgd = legend('show', 'Location', 'northeast', 'Interpreter', 'latex');
-% lgd.FontSize = 10;
+lgd = legend('show', 'Location', 'northeast', 'Interpreter', 'latex');
+lgd.FontSize = 10;
 
 % 5. Exporting (High Resolution)
 
-exportgraphics(fig, base + 'PRBS_input.pdf', 'ContentType', 'vector');
+exportgraphics(fig, base + 'damping_ratio.pdf', 'ContentType', 'vector');
 
 %%
 base = "plots/";
