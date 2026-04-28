@@ -1,39 +1,45 @@
 base = "plots/";
 
 % 2. Figure Setup
-figWidth = 35; 
+figWidth = 40; 
 figHeight = 15;
 
 fig = figure('Units', 'centimeters', 'Position', [5, 5, figWidth, figHeight]);
 hold on; grid on;
 
-% 3. Plotting with Style
-% Use distinct colors and thicker lines
-p1 = plot(t_new,data, 'b', linewidth=1.3); hold on;
+% 3. Plot
+p1 = plot(t_new, data, 'b', linewidth=1.5, DisplayName="Pendulum Angle"); hold on;
 
 % Plot the peaks to show the fit
-plot(locs, pks, 'o', 'MarkerFaceColor', [0.5 0 0.8], 'DisplayName', 'Measured Peaks'); hold on;
-yline(0, 'k--'); % Show the new zero center
+plot(locs, pks, 'o', 'MarkerFaceColor', [0 0.5 0], 'MarkeredgeColor', [0 0.5 0] , 'DisplayName', 'Measured Peaks'); hold on;
+% yline(0, 'k--'); % Show the new zero center
 grid on;
 
 % Plot the envelopes
-plot(t_new, upper_env, 'r--', 'LineWidth', 3, 'DisplayName', 'Upper Envelope');
+plot(t_new, upper_env, 'r--', 'LineWidth', 3, 'DisplayName', 'Exponential Envelope $\quad$');
 plot(t_new, lower_env, 'r--', 'LineWidth', 3, 'HandleVisibility', 'off');
 
 % 4. LaTeX Formatting & Axes properties
 set(gca, ...
     'TickLabelInterpreter', 'latex', ...
-    'FontSize', 10, ...
-    'FontName', 'Times New Roman', ... % Standard for academic journals
+    'FontSize', 10, ... ...
     'Box', 'on', ...
     'LineWidth', 1.2);
 
-% Labels with LaTeX syntax
-xlabel('\textbf{Time (s)}', 'Interpreter', 'latex', 'FontSize', 20);
-ylabel('\textbf{Angle (rad)}', 'Interpreter', 'latex', 'FontSize', 20);
+% Set the default interpreter for all text objects (titles, labels, etc.)
+set(groot, 'DefaultTextInterpreter', 'latex');
 
-lgd = legend('show', 'Location', 'northeast', 'Interpreter', 'latex');
-lgd.FontSize = 10;
+% Set the default interpreter for axes tick labels
+set(groot, 'DefaultAxesTickLabelInterpreter', 'latex');
+
+% Set the default interpreter for legends
+set(groot, 'DefaultLegendInterpreter', 'latex');
+% Labels with LaTeX syntax
+xlabel('\textbf{Time (s)}',  'FontSize', 18);
+ylabel('\textbf{Angle (rad)}',  'FontSize', 18);
+
+lgd = legend('show', 'Location', 'northeast');
+lgd.FontSize = 12;
 
 % 5. Exporting (High Resolution)
 

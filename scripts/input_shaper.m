@@ -13,38 +13,9 @@ mode = "manual";
 % 2) PARAMETERS
 % ==========================
 
-if mode == "manual"
-    % ---- MANUAL INPUT ----
-    wn = 5;        % natural frequency [rad/s]
-    zeta = 0.007;     % damping ratio [-]
-
-elseif mode == "data"
-    % ---- LOAD YOUR DATA ----
-    % t  -> time vector [s]
-    % theta -> pendulum angle [rad]
-    load('pendulum_data.mat');  
-    
-    % Find peaks
-    [pks, locs] = findpeaks(theta, t);
-
-    % Use first two peaks for log decrement
-    theta1 = pks(1);
-    theta2 = pks(2);
-
-    delta = log(theta1 / theta2);
-
-    % Damping ratio
-    zeta = delta / sqrt(4*pi^2 + delta^2);
-
-    % Period from peak spacing
-    T = locs(2) - locs(1);
-
-    % Natural frequency
-    wn = 2*pi / T;
-
-else
-    error("Invalid mode selected");
-end
+% ---- MANUAL INPUT ----
+wn = 6.822;        % natural frequency [rad/s]
+zeta = 0.0069;     % damping ratio [-]
 
 wd = wn * sqrt(1 - zeta^2);
 
@@ -82,6 +53,42 @@ fprintf('t2 = %.4f s\n', t2);
 fprintf('t3 = %.4f s\n', t3);
 
 fprintf('\nSum of amplitudes = %.4f\n', A1 + A2 + A3);
+
+%% ZVDD
+
+A1 = 1 / (1 + K)^3;
+A2 = 3*K / (1 + K)^3;
+A3 = 3*K^2 / (1 + K)^3;
+A4 = K^3 / (1 + K)^3;
+
+t1 = 0;
+t2 = pi / wd;
+t3 = 2*pi / wd;
+t4 = 3*pi / wd;
+
+% =========================
+% ZVDD VALIDATION CHECKS
+% ==========================
+
+fprintf('--- ZVDD SHAPER ---\n');
+fprintf('wn   = %.4f rad/s\n', wn);
+fprintf('zeta = %.4f\n', zeta);
+fprintf('wd   = %.4f rad/s\n\n', wd);
+
+fprintf('Amplitudes:\n');
+fprintf('A1 = %.4f\n', A1);
+fprintf('A2 = %.4f\n', A2);
+fprintf('A3 = %.4f\n', A3);
+fprintf('A4 = %.4f\n', A4);
+
+fprintf('\nTimes:\n');
+fprintf('t1 = %.4f s\n', t1);
+fprintf('t2 = %.4f s\n', t2);
+fprintf('t3 = %.4f s\n', t3);
+fprintf('t4 = %.4f s\n', t4);
+
+
+fprintf('\nSum of amplitudes = %.4f\n', A1 + A2 + A3 + A4);
 
 %% =========================
 % 6) CREATE DISCRETE SHAPER

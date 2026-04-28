@@ -236,8 +236,9 @@ zeta_calc = delta / sqrt(4*pi^2 + delta^2);
 % 4. Frequency Calculation
 total_time = locs(end) - locs(1);
 Td = total_time / n;            
-fd_calc = 1 / Td;               
-fn_calc = fd_calc / sqrt(1 - zeta_calc^2);
+fd_calc = 1 / Td               
+fn_calc = fd_calc / sqrt(1 - zeta_calc^2)
+
 
 % 5. Results
 fprintf('--- Results ---\n');
@@ -247,8 +248,10 @@ fprintf('Nat Freq (fn):   %.4f Hz\n', fn_calc);
 
 T_avg = mean(diff(locs)); % Average period
 fn_est = 1 / T_avg;       % Frequency in Hz
-wn_est = 2 * pi * fn_est; % Frequency in rad/s
+wn_est = 2 * pi * fn_est % Frequency in rad/s
 
+wd = 2*pi*fd_calc
+wn = 2*pi*fn_calc
 % Use locs(1) to find the exact time of the first peak
 t_first_peak = locs(1); 
 sigma = zeta_calc * wn_est;
