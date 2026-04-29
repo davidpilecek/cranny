@@ -146,6 +146,9 @@ num = [Lp*ml + 0.5*Lp*mr 0 0];
 den = [Jp Dp (Lp*ml + 0.5*Lp*mr)*g];
 
 tfPend_ga = tf(num, den)
+[wn, zeta] = damp(tfPend_ga)
+
+pole(tfPend_ga)
 % rlocus(tfPend_ga)
 %%
 rlocus(tfPend2)
