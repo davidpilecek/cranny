@@ -1,13 +1,11 @@
 %% random stuff
+u = load("input_shaping\input_ZVD.mat").ans.Data;
+y = load("input_shaping\simulation\pendulum_ZV.mat").ans.Data;
+y2 = load("input_shaping\simulation\pendulum_noIS.mat").ans.Data;
 
-wn = sqrt(46.54)
-
-a2 = 0.09515;
-
-zeta = 0.09515/(2*wn)
-
-
-
+plot(y)
+hold on
+plot(y2)
 %% Load data
 clc;clear;
 % data = load("old_responses\2_sledge.mat");
