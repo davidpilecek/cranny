@@ -97,46 +97,52 @@ for i = 1:size(plots,1)
     close(fig);
 end
 
-%% 1. Data Generation
-x = data_pulse_sledge.SamplingInstants;
-y_left = data_pulse_sledge.InputData; % Primary data
-y_right = data_pulse_sledge.OutputData;                % Secondary data with different scale
+%% Input shaper graph
+clc; clear; close all;
 
+% System parameters
+wn = 2*pi*0.7;
+zeta = 0.1;
+wd = wn*sqrt(1 - zeta^2);
 
-% 2. Figure Setup
-figWidth = 35; 
-figHeight = 15;
-fig = figure('Units', 'centimeters', 'Position', [5, 5, figWidth, figHeight]);
-hold on; 
+% Time
+t = linspace(0, 3, 1000);
 
-% 3. Left Axis (Primary)
-yyaxis left
-p1 = plot(x, y_left, 'LineWidth', 2, 'Color', [0, 0.4470, 0.7410]);
-ylabel('Oscillation [$\mu$V]', 'Interpreter', 'latex', 'FontSize', 12);
-ax = gca;
-ax.YColor = [0, 0.4470, 0.7410]; % Match axis color to the line
+% ZV shaper parameters
+K = exp(-zeta*pi / sqrt(1 - zeta^2));
 
-% 4. Right Axis (Secondary)
-yyaxis right
-p2 = plot(x, y_right, '-', 'LineWidth', 2, 'Color', [0.8500, 0.3250, 0.0980]);
-ylabel('Power Growth [$W$]', 'Interpreter', 'latex', 'FontSize', 12);
-ax.YColor = [0.6350, 0.0780, 0.1840]; % Match axis color to the line
+A1 = 1/(1 + K);
+A2 = K/(1 + K);
+t2 = pi / wd;
 
-% 5. Global Styling & Labels
-grid on;
-xlabel('Time [$s$]', 'Interpreter', 'latex', 'FontSize', 12);
-title('\textbf{Dual-Scale Analysis}', 'Interpreter', 'latex', 'FontSize', 14);
+% Impulse response
+h = @(tau) (1/wd) * exp(-zeta*wn*tau) .* sin(wd*tau) .* (tau >= 0);
 
-% Universal Axis settings (apply to both sides)
-set(gca, ...
-    'TickLabelInterpreter', 'latex', ...
-    'FontSize', 11, ...
-    'FontName', 'Times New Roman', ...
-    'Box', 'on');
+% Responses
+y1 = A1 * h(t);
+y2 = A2 * h(t - t2);
+y_total = y1 + y2;
 
-% Legend - Using handles ensures labels match the correct lines
-legend([p1, p2], {'Signal $A$', 'Growth $B$'}, ...
-    'Interpreter', 'latex', 'Location', 'northwest');
+% Plot
+figure;
 
-%% 6. Export
-exportgraphics(fig, 'DualAxisPlot.pdf', 'ContentType', 'vector');
+subplot(3,1,1)
+plot(t, y1, 'b--', 'LineWidth', 1.5); hold on;
+stem(0, A1, 'k', 'filled');
+title('(a) Response to A_1'); grid on
+
+subplot(3,1,2)
+plot(t, y2, 'r--', 'LineWidth', 1.5); hold on;
+stem(t2, A2, 'k', 'filled');
+title('(b) Response to A_2'); grid on
+
+subplot(3,1,3)
+plot(t, y1, 'b--'); hold on;
+plot(t, y2, 'r--');
+plot(t, y_total, 'k', 'LineWidth', 2);
+stem([0 t2], [A1 A2], 'k', 'filled');
+
+legend('A_1 Response','A_2 Response','Total Response')
+title('(c) Superposition (ZV - zero residual vibration)')
+xlabel('Time [s]')
+grid on

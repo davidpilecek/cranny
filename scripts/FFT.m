@@ -60,7 +60,7 @@ hold off;
 ts = load("PC2\responses\ramp_pend.mat").ans;
 
 t_end = ts.Time(end);
-t_start = t_end - 8;
+t_start = t_end - 8
 
 idx = ts.Time >= t_start;
 
