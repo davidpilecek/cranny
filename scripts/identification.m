@@ -1,17 +1,19 @@
 %% Estimate tf sledge
 
-data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_step_sledge;
+data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_sine_sledge, data_step_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
+source = data_estimate_sledge;
 
 Opt = tfestOptions('Display','on');
 Opt.InitialCondition = 'zero';
-Opt.SearchOptions.MaxIterations = 40;
+Opt.SearchOptions.MaxIterations = 500;
 
 np = 2;
 ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
+%%
 
+plot(data_step_sledge)
 %%
 
 tfSledge_j = tf([4.88], [20.11 238.20 0])
@@ -142,16 +144,16 @@ g  = 9.82;
 Jp = 0.0147;
 Dp = 0.0013;
 
-num = [Lp*ml + 0.5*Lp*mr 0 0];
-den = [Jp Dp (Lp*ml + 0.5*Lp*mr)*g];
+num = [0.0696 0 0]
+den = [0.0147 0.0013 0.6834]
 
-tfPend_ga = tf(num, den)
-[wn, zeta] = damp(tfPend_ga)
+tfPend = tf(num, den)
+[wn, zeta] = damp(tfPend)
 
-pole(tfPend_ga)
+rltool(tfPend)
 % rlocus(tfPend_ga)
 %%
-rlocus(tfPend2)
+rltool(tfPend2)
 %%
 source = data_step_pendulum
 close all;

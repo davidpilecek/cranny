@@ -1,6 +1,4 @@
 
-
-
 function dtheta = pendulum_ode(t, y, p, t_data, a_data)
     % y(1) = theta, y(2) = theta_dot
     % p(1) = Jp, p(2) = Dp
