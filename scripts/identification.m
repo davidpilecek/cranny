@@ -1,11 +1,11 @@
 %% Estimate tf sledge
 
 data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_sine_sledge, data_step_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_estimate_sledge;
+source = data_comp_sledge;
 
 Opt = tfestOptions('Display','on');
 Opt.InitialCondition = 'zero';
-Opt.SearchOptions.MaxIterations = 500;
+Opt.SearchOptions.MaxIterations = 100;
 
 np = 2;
 ioDelay = delayest(source) * Ts;
@@ -13,7 +13,7 @@ ioDelay = delayest(source) * Ts;
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 %%
 
-plot(data_step_sledge)
+rltool(tfSledge)
 %%
 
 tfSledge_j = tf([4.88], [20.11 238.20 0])
