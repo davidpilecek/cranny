@@ -45,17 +45,6 @@ legend; grid on;
 %%
 
 
-G = tf([0.4857], [1, 13.79, 0.01658])
-G2 = tf([4.739 0 0], [1 0.09515 46.54])
-
-sys = G*G2
-C_pid = pid(20, 0.01, 0, 10)
-C = tf(C_pid)
-L = C*sys
-
-
-margin(L)
-
 %%
 P1 = 10;
 P2 = 5;
@@ -107,15 +96,11 @@ legend("simulated", "real")
 
 %%
 
-n = size(datasets);
-n = n(4);
+s = tf('s');
 
-for i = 1:n
-    u = datasets.u{i};
-    % Scaling: Convert measured cm to m for SI consistency
-    y_meas = datasets.y{i}(:,1) / 100; 
-    t = (0:datasets.Ts{i}:(length(u)-1)*datasets.Ts{i})';
-    plot(y_meas)
-    hold on
-end
+N = (s^2 + 0.273*s + 46.5) / (s^2 + 6.82*s + 46.5);
 
+Ts = 0.001; % <-- set your actual sampling time
+Nz = c2d(N, Ts, 'tustin')
+
+[num, den] = tfdata(Nz, 'v')

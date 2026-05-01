@@ -12,7 +12,8 @@ ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
 %%
-
+compare(data_rgsc_sledge, tfSledge)
+%%
 rltool(tfSledge)
 %%
 
