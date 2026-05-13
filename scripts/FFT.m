@@ -2,8 +2,8 @@
 Ts = 0.01;
 fs = 1/Ts;
 
-prbs_input  = load("PC2/responses/step_in.mat").ans.Data;
-x = load("PC2/responses/step_pend.mat").ans.Data;
+prbs_input  = load("PC2/responses/PRBS_in.mat").ans.Data;
+x = load("PC2/responses/PRBS_pend.mat").ans.Data;
 
 N = length(x);
 

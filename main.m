@@ -6,6 +6,32 @@ y2 = load("input_shaping\simulation\pendulum_noIS.mat").ans.Data;
 plot(y)
 hold on
 plot(y2)
+
+%%
+
+source = data_prbs_pendulum;
+t_data = source.SamplingInstants;
+x_data = source.InputData;
+measured_theta = source.OutputData;
+
+% Assuming 't_data' and 'x_data' are your measured vectors
+dt = t_data(2) - t_data(1); 
+v_data = gradient(x_data, dt);      % Velocity
+
+ys_i = x_data;
+% u_i  = interp1(u.Time,  u.Data,  t_data);
+% ys_i = interp1(ys.Time, ys.Data, t);
+
+y_s_f = filtfilt(b,a,ys_i);
+
+dt = t_data(2) - t_data(1); 
+v_data_f = gradient(y_s_f, dt);
+
+plot(x_data)
+hold on
+plot(y_s_f)
+
+
 %% Load data
 clc;clear;
 % data = load("old_responses\2_sledge.mat");

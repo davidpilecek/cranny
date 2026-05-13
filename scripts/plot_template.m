@@ -1,36 +1,33 @@
 
-
-clc; clear; close all;
-
 plot_format();   % apply styling
-
 
 %%
 
+% Create figure
+figure; hold on;
+
+u  = load(base + "prbs_in.mat").ans;
+ys = load(base + "prbs_sled.mat").ans;
+yp = load(base + "prbs_pend.mat").ans;
+
+new_data = yp.Data(idx) - mean(yp.Data(idx))
+new_data2 = y_p_f(idx) - mean(y_p_f(idx))
+
+plot(yp.Time(idx), new_data, Color='r', LineWidth=1.5)
+hold on
+plot(yp.Time(idx), new_data2, Color='b', LineWidth=1.5)
 
 
+xlabel("Time (s)")
+ylabel("Angle (rad)")
 
+legend('Original','Filtered');
 
+% Tight layout
+% axis tight;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-exportgraphics(gcf, 'figure_test2.pdf', 'ContentType','vector');
-
-
-
-
-
+% Export (vector for report)
+exportgraphics(gcf, 'filtered_pend.pdf', 'ContentType','vector');
 
 
 %% Example data
