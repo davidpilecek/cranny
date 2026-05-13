@@ -1,7 +1,7 @@
 %% Estimate tf sledge
 
 data_estimate_sledge = merge(data_bang_sledge, data_saw_sledge, data_sine_sledge, data_step_sledge, data_pulse_sledge, data_ramp_sledge, data_prbs_sledge);
-source = data_comp_sledge;
+source = data_prbs_sledge;
 
 Opt = tfestOptions('Display','on');
 Opt.InitialCondition = 'zero';
@@ -51,7 +51,6 @@ figure
 compare(data_saw_sledge, tfSledge2)
 
 %%
-
 figure
 compare(data_prbs2_sledge, tfSledge)
 figure
@@ -156,7 +155,7 @@ rltool(tfPend)
 %%
 rltool(tfPend2)
 %%
-source = data_step_pendulum
+source = data_step_pendulum;
 close all;
 
 plot(lsim(tfPend_ga, source.InputData, source.SamplingInstants))
@@ -164,6 +163,7 @@ hold on
 plot(source.OutputData)
 
 %%
+
 figure
 compare(data_prbs_pendulum, tfPend2)
 figure
