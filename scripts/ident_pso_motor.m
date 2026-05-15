@@ -1,106 +1,157 @@
-%% Sledge Parameter Estimation using PSO (v0 = 0)
+%% Grey-Box Sledge Identification
+% Physical DC motor model
 
-% 1. Load PRBS Data
-% Ensure source object is in your workspace
-source = data_prbs_sledge; 
-t_data = source.SamplingInstants;
-v_data = source.InputData;       
-measured_x = source.OutputData;  
+clear; clc;
+%%
+% 1. Load Multi-Experiment Data
 
-% 2. Optimization Setup
-% Parameters: [Kt, Ke, Jm, Dm, Ds]
+data_all = merge( ...
+    data_sine_sledge, ...
+    data_bang_sledge, ...
+    data_pulse_sledge);
+
+% 2. Optimization Variables
+% p = [Kt, Jm, Dm, Ds, ms]
+
 nVars = 5;
 
-% Search Boundaries (Normalized)
-% [Kt, Ke, Jm, Dm, Ds]
-lb = [0.1, 0.1, 0.01, 0.01, 0.1]; 
-ub = [5.0, 5.0, 5.0,  5.0,  5.0];
+% 3. Parameter Bounds
 
-% 3. Configure PSO Options
-hybridOptions = optimoptions('fmincon', 'Display', 'none', 'Algorithm', 'sqp');
+lb = [ ...
+    0.01,...    % Kt
+    1e-7, ...   % Jm
+    0, ...    % Dm
+    1,  ...    % Ds
+    0.1        % ms
+];
 
-options = optimoptions('particleswarm', ...
+ub = [ ...
+    1,...    % Kt
+    0.1, ...   % Jm
+    1e-3, ...   % Dm
+    100.0, ...    % Ds
+    10
+];
+
+% 4. PSO Settings
+
+hybridOptions = optimoptions( ...
+    'fmincon', ...
+    'Display', 'none', ...
+    'Algorithm', 'sqp');
+
+options = optimoptions( ...
+    'particleswarm', ...
     'SwarmSize', 50, ...
     'MaxIterations', 100, ...
-    'HybridFcn', {@fmincon, hybridOptions}, ... 
-    'PlotFcn', 'pswplotbestf', ...
-    'Display', 'iter');
+    'HybridFcn', {@fmincon, hybridOptions}, ...
+    'Display', 'iter', ...
+    'PlotFcn', 'pswplotbestf');
 
-% 4. Run Optimization
-fprintf('Starting PSO Optimization (5 Parameters)...\n');
-fitness_handle = @(p) sledge_fitness(p, t_data, v_data, measured_x);
-rng default; 
-[p_best_norm, min_mse] = particleswarm(fitness_handle, nVars, lb, ub, options);
+% 5. Fitness Function
 
-% 5. De-normalize Best Parameters for Results
-final_params = denormalize_params(p_best_norm);
-Kt = final_params(1); Ke = final_params(2); Jm = final_params(3);
-Dm = final_params(4); Ds = final_params(5);
+fitness = @(p) sledge_fitness_multi( ...
+    p, ...
+    data_all);
 
-fprintf('\n--- Optimized Physical Parameters ---\n');
-fprintf('Kt: %.6f [Nm/A]\n', Kt);
-fprintf('Ke: %.6f [V/(rad/s)]\n', Ke);
-fprintf('Jm: %.6e [kg*m^2]\n', Jm);
-fprintf('Dm: %.6e [Nm/(rad/s)]\n', Dm);
-fprintf('Ds: %.6f [N/(m/s)]\n', Ds);
+% 6. Run Optimization
 
-% 6. Final Validation Plot
-y0 = [measured_x(1); 0]; % Hardcoded v0 = 0
-opts_ode = odeset('RelTol', 1e-6, 'AbsTol', 1e-8);
-[~, y_sim] = ode45(@(t, y) sledge_ode(t, y, [Kt, Ke, Jm, Dm, Ds], t_data, v_data), t_data, y0, opts_ode);
+rng default
 
-figure('Color', 'w');
-plot(t_data, measured_x, 'k', 'LineWidth', 1.2, 'DisplayName', 'Measured $x(t)$'); hold on;
-plot(t_data, y_sim(:,1), 'r--', 'LineWidth', 1.5, 'DisplayName', 'PSO Model');
-set(gca, 'TickLabelInterpreter', 'latex');
-xlabel('Time $t$ [s]', 'Interpreter', 'latex', 'FontSize', 14);
-ylabel('Displacement $x$ [m]', 'Interpreter', 'latex', 'FontSize', 14);
-title('\textbf{Sledge Identification: Standstill Start ($v_0 = 0$)}', 'Interpreter', 'latex', 'FontSize', 16);
-legend('Interpreter', 'latex', 'Location', 'best');
+[p_best, best_cost] = particleswarm( ...
+    fitness, ...
+    nVars, ...
+    lb, ...
+    ub, ...
+    options);
+
+%% 7. Results
+
+Kt = p_best(1);
+Jm = p_best(2);
+Dm = p_best(3);
+Ds = p_best(4);
+ms = p_best(5);
+
+fprintf('\n===== IDENTIFIED PARAMETERS =====\n');
+
+fprintf('Kt = %.6e kg*m^2\n', Kt);
+fprintf('Jm = %.6e kg*m^2\n', Jm);
+fprintf('Dm = %.6e Nm/(rad/s)\n', Dm);
+fprintf('Ds = %.6f N*s/m\n', Ds);
+fprintf('ms = %.6f kg\n', ms);
+
+fprintf('\nFinal Cost = %.8e\n', best_cost);
+
+rm = 0.007;      % [m]
+% ms = 0.93;       % [kg]
+Ra = 0.368;      % [Ohm]
+Ke = Kt;
+
+%% 8. Validation Plot
+
+exp_data = data_sine_sledge;
+
+t_data = exp_data.SamplingInstants(:);
+u_data = exp_data.InputData(:);
+x_measured = exp_data.OutputData(:);
+
+y0 = [0;0];
+
+num = Kt/(rm*Ra);
+den = [(ms + Jm/(rm^2)) (Kt*Ke/(Ra*rm^2) + Dm/(rm^2) + Ds) 0];
+
+tf_sledge = tf(num, den)
+tf_sledge_j = tf(4886, [2011 23820 0])
+
+opt = compareOptions('InitialCondition','z');
+
+input = u_data*5/24;
+
+test = lsim(tf_sledge_j, input, source.SamplingInstants);
+test2 = lsim(tf_sledge, u_data, source.SamplingInstants);
+
+% [~, y_sim] = ode45( ...
+%     @(t,y) sledge_ode( ...
+%         t, y, p_best, ...
+%         t_data, u_data), ...
+%     t_data, ...
+%     y0);
+
+% 9. Plot
+
+figure('Color','w');
+
+plot( ...
+    t_data, ...
+    x_measured, ...
+    'k', ...
+    'LineWidth',1.5, ...
+    'DisplayName','Measured');
+
+hold on;
+
+plot( ...
+    t_data, ...
+    test2, ...
+    'r--', ...
+    'LineWidth',1.5, ...
+    'DisplayName','Model');
+
+hold on;
+
+plot(  ...
+    t_data, ...
+    test,...
+    'b--', ...
+    'LineWidth',1.5, ...
+    'DisplayName','Model theirs');
+
+xlabel('Time [s]');
+ylabel('Position [m]');
+
+title('Validation');
+
+legend('Location','best');
+
 grid on;
-
-%% --- SUPPORT FUNCTIONS ---
-
-function score = sledge_fitness(p_norm, t_data, v_data, measured_x)
-    p_phys = denormalize_params(p_norm);
-    
-    % Hardcode initial velocity to 0
-    y0 = [measured_x(1); 0];
-    
-    try
-        opts = odeset('RelTol', 1e-4, 'AbsTol', 1e-5);
-        [~, y_sim] = ode45(@(t, y) sledge_ode(t, y, p_phys, t_data, v_data), t_data, y0, opts);
-        
-        if size(y_sim, 1) ~= length(measured_x) || any(isnan(y_sim(:)))
-            score = 1e12;
-        else
-            score = mean((measured_x - y_sim(:,1)).^2);
-        end
-    catch
-        score = 1e12;
-    end
-end
-
-function p_phys = denormalize_params(p_norm)
-    p_phys = zeros(1, 5);
-    p_phys(1) = p_norm(1) * 1.0;    % Kt
-    p_phys(2) = p_norm(2) * 1.0;    % Ke
-    p_phys(3) = p_norm(3) * 1e-5;   % Jm
-    p_phys(4) = p_norm(4) * 1e-4;   % Dm
-    p_phys(5) = p_norm(5) * 1.0;    % Ds
-end
-
-function ddx = sledge_ode(t, y, p, t_data, v_data)
-    % y(1) = x, y(2) = x_dot
-    Kt = p(1); Ke = p(2); Jm = p(3); Dm = p(4); Ds = p(5);
-    ms = 0.93; rm = 0.007; Ra = 0.368;
-    
-    Va = interp1(t_data, v_data, t, 'linear', 'extrap');
-    
-    M_eq = ms + Jm/(rm^2);
-    D_eq = (Kt*Ke)/(rm^2*Ra) + Dm/(rm^2) + Ds;
-    F_in = Va * (Kt/(rm*Ra));
-    
-    x_ddot = (F_in - D_eq * y(2)) / M_eq;
-    ddx = [y(2); x_ddot];
-end

@@ -7,7 +7,8 @@ function dtheta = pendulum_ode(t, y, p, t_data, a_data)
     Dp = p(2);
    
     % Known constants
-    Lp = 0.205;
+    Lr = 0.205;
+    Lp = 0.2375;
     ml = 0.272;
     mr = 0.135;
     g  = 9.82;
@@ -16,7 +17,7 @@ function dtheta = pendulum_ode(t, y, p, t_data, a_data)
     x_ddot = interp1(t_data, a_data, t, 'linear', 'extrap');
     
     % Common term K
-    K = (Lp * ml + 0.5 * Lp * mr);
+    K = (Lp * ml + 0.5 * Lr * mr);
     
     % The ODE solved for theta_ddot:
     % Jp*ddtheta = K*x_ddot - K*g*theta - Dp*dtheta

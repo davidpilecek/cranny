@@ -25,7 +25,7 @@ yp_i = interp1(yp.Time, yp.Data, t);
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
-data_bang_sledge = iddata(ys_i, u_i, Ts);
+data_bang_sledge = iddata(y_s_f, u_i, Ts);
 data_bang_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % ==================== PRBS ======================================
@@ -50,16 +50,9 @@ yp_i = interp1(yp.Time, yp.Data, t);
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
-plot(y_p_f)
-% plot(y_p_f)
-data_prbs_sledge    = iddata(ys_i, u_i, Ts);
+
+data_prbs_sledge    = iddata(y_s_f, u_i, Ts);
 data_prbs_pendulum  = iddata(y_p_f, ys_i, Ts);
-
-plot(yp.Time(idx), yp.Data(idx))
-hold on
-plot(yp.Time(idx), y_p_f(idx))
-
-
 
 
 %
@@ -102,8 +95,11 @@ ys_i = interp1(ys.Time, ys.Data, t, 'linear');
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
+% plot(ys_i)
+% hold on
+% plot(y_s_f)
 
-data_ramp_sledge   = iddata(ys_i, u_i, Ts);
+data_ramp_sledge   = iddata(y_s_f, u_i, Ts);
 data_ramp_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === STEP =========================================
@@ -125,7 +121,7 @@ y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
 
-data_step_sledge   = iddata(ys_i, u_i, Ts);
+data_step_sledge   = iddata(y_s_f, u_i, Ts);
 data_step_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === SAW =========================================
@@ -147,7 +143,7 @@ y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
 
-data_saw_sledge   = iddata(ys_i, u_i, Ts);
+data_saw_sledge   = iddata(y_s_f, u_i, Ts);
 data_saw_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === PULSE =========================================
@@ -170,7 +166,7 @@ y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
 
-data_pulse_sledge   = iddata(ys_i, u_i, Ts);
+data_pulse_sledge   = iddata(y_s_f, u_i, Ts);
 data_pulse_pendulum = iddata(y_p_f, ys_i, Ts);
 
 % === sine2 =========================================
@@ -183,6 +179,14 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
+plot(ys.Data)
+hold on
+
+ys.Data = detrend(ys.Data);
+ys.Data = ys.Data + abs(ys.Data(1));
+
+plot(ys.Data)
+
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
@@ -192,7 +196,7 @@ y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
 
-data_sine2_sledge   = iddata(ys_i, u_i, Ts);
+data_sine2_sledge   = iddata(y_s_f, u_i, Ts);
 data_sine2_pendulum = iddata(y_p_f, ys_i, Ts);
 
 
@@ -206,6 +210,9 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
+ys.Data = detrend(ys.Data);
+ys.Data = ys.Data + abs(ys.Data(1));
+
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
 yp_i = interp1(yp.Time, yp.Data, t);
@@ -214,9 +221,11 @@ yp_i = interp1(yp.Time, yp.Data, t);
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
-
-data_sine_sledge   = iddata(ys_i, u_i, Ts);
+data_sine_sledge   = iddata(y_s_f, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
+
+
+
 
 % === COMPENSATED =========================================
 u  = load("hidden/compensated/prbs_comp_input.mat").ans;
