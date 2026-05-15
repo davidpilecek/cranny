@@ -90,7 +90,7 @@ Ke = Kt;
 
 %% 8. Validation Plot
 
-exp_data = data_sine_sledge;
+exp_data = data_ramp_sledge;
 
 t_data = exp_data.SamplingInstants(:);
 u_data = exp_data.InputData(:);
@@ -108,8 +108,8 @@ opt = compareOptions('InitialCondition','z');
 
 input = u_data*5/24;
 
-test = lsim(tf_sledge_j, input, source.SamplingInstants);
-test2 = lsim(tf_sledge, u_data, source.SamplingInstants);
+test = lsim(tf_sledge_j, input, exp_data.SamplingInstants);
+test2 = lsim(tf_sledge, u_data, exp_data.SamplingInstants);
 
 % [~, y_sim] = ode45( ...
 %     @(t,y) sledge_ode( ...
