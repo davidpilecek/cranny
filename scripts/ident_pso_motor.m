@@ -6,6 +6,7 @@ clear; clc;
 % 1. Load Multi-Experiment Data
 
 data_all = merge( ...
+    data_step_sledge, ...
     data_sine_sledge, ...
     data_bang_sledge, ...
     data_pulse_sledge);
@@ -13,7 +14,7 @@ data_all = merge( ...
 % 2. Optimization Variables
 % p = [Kt, Jm, Dm, Ds, ms]
 
-nVars = 5;
+nVars = 4;
 
 % 3. Parameter Bounds
 
@@ -21,16 +22,14 @@ lb = [ ...
     0.01,...    % Kt
     1e-7, ...   % Jm
     0, ...    % Dm
-    1,  ...    % Ds
-    0.1        % ms
+    1       % ms
 ];
 
 ub = [ ...
     1,...    % Kt
     0.1, ...   % Jm
     1e-3, ...   % Dm
-    100.0, ...    % Ds
-    10
+    100.0
 ];
 
 % 4. PSO Settings

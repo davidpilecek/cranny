@@ -76,8 +76,10 @@ x = particleswarm(fitness_handle, nVars, lb, ub, options)
 
 %%
 
+
+
 % Run one last simulation with best params to plot
-y0 = [measured_theta(1); 0];
+y0 = [0; 0];
 [~, y_best] = ode45(@(t, y) pendulum_ode(t, y, x, t_data, a_data), t_data, y0);
 
 figure;

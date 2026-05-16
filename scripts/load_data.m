@@ -179,13 +179,13 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
-plot(ys.Data)
-hold on
+% plot(ys.Data)
+% hold on
 
 ys.Data = detrend(ys.Data);
 ys.Data = ys.Data + abs(ys.Data(1));
 
-plot(ys.Data)
+% plot(ys.Data)
 
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);

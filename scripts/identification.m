@@ -133,34 +133,38 @@ tfPend = tfest(source, np, nz, ioDelay, Opt)
 %% Validate pendulum
 tfPend2 = tf([4.739 0 0], [1 0.09515 46.54])
 
-Lp = 0.205;
+Lr = 0.205;
+Lp = 0.2375;
 ml = 0.272;
 mr = 0.135;
 g  = 9.82;
+    
 
-% Jp = 0.014659;
-% Dp = 0.001211;
+Jp = 0.0166;
+Dp = 0.0011;
 
-Jp = 0.0147;
-Dp = 0.0013;
-
-num = [0.0696 0 0]
-den = [0.0147 0.0013 0.6834]
+num = [(Lp*ml + 0.5*Lr*mr)/Jp 0 0]
+den = [1 Dp/Jp (Lp*ml + 0.5*Lr*mr)*g/Jp]
 
 tfPend = tf(num, den)
 [wn, zeta] = damp(tfPend)
 
-rltool(tfPend)
+tfPend_n = tfPend
+
+% rltool(tfPend)
 % rlocus(tfPend_ga)
+
 %%
-rltool(tfPend2)
-%%
-source = data_step_pendulum;
+source = data_ramp_pendulum;
 close all;
 
-plot(lsim(tfPend_ga, source.InputData, source.SamplingInstants))
+plot(lsim(tfPend, source.InputData, source.SamplingInstants))
 hold on
 plot(source.OutputData)
+
+legend("sim", "real")
+figure
+compare(source, tfPend)
 
 %%
 

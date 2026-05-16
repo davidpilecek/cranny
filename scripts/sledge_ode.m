@@ -5,17 +5,15 @@ function dydt = sledge_ode( ...
     %% Known Constants
 
     rm = 0.007;      % [m]
-    % ms = 0.93;       % [kg]
     Ra = 0.368;      % [Ohm]
+    ms = 0.93;
     
-
     %% Estimated Parameters
     % p = [Kt, Jm, Dm, Ds]
     Kt = p(1);
     Jm = p(2);
     Dm = p(3);
     Ds = p(4);
-    ms = p(5);
 
     Ke = Kt;
     %% States
