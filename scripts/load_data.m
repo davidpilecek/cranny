@@ -225,49 +225,27 @@ data_sine_sledge   = iddata(y_s_f, u_i, Ts);
 data_sine_pendulum = iddata(y_p_f, ys_i, Ts);
 
 
+% % === COMPENSATED =========================================
+% u  = load("hidden/compensated/prbs_comp_input.mat").ans;
+% ys = load("hidden/compensated/prbs_comp_sledge.mat").ans;
+% yp = load("hidden/compensated/prbs_comp_pendulum.mat").ans;
+% 
+% tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
+% tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
+% t = (tmin:Ts:tmax)';
+% yp.Data = yp.Data - mean(yp.Data);
+% 
+% u_i  = interp1(u.Time,  u.Data,  t);
+% ys_i = interp1(ys.Time, ys.Data, t);
+% yp_i = interp1(yp.Time, yp.Data, t);
+% 
+% % Filter
+% y_p_f = filtfilt(b,a,yp_i);
+% y_s_f = filtfilt(b,a,ys_i);
+% 
+% 
+% data_comp_sledge   = iddata(ys_i, u_i, Ts);
+% data_comp_pendulum = iddata(y_p_f, ys_i, Ts);
 
-
-% === COMPENSATED =========================================
-u  = load("hidden/compensated/prbs_comp_input.mat").ans;
-ys = load("hidden/compensated/prbs_comp_sledge.mat").ans;
-yp = load("hidden/compensated/prbs_comp_pendulum.mat").ans;
-
-tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
-tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
-t = (tmin:Ts:tmax)';
-yp.Data = yp.Data - mean(yp.Data);
-
-u_i  = interp1(u.Time,  u.Data,  t);
-ys_i = interp1(ys.Time, ys.Data, t);
-yp_i = interp1(yp.Time, yp.Data, t);
-
-% Filter
-y_p_f = filtfilt(b,a,yp_i);
-y_s_f = filtfilt(b,a,ys_i);
-
-
-data_comp_sledge   = iddata(ys_i, u_i, Ts);
-data_comp_pendulum = iddata(y_p_f, ys_i, Ts);
-
-% === COMPENSATED =========================================
-u  = load("hidden/compensated/rgs_c_input.mat").ans;
-ys = load("hidden/compensated/rgs_c_sledge.mat").ans;
-yp = load("hidden/compensated/rgs_c_pendulum.mat").ans;
-
-tmin = max([u.Time(1), ys.Time(1), yp.Time(1)]);
-tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
-t = (tmin:Ts:tmax)';
-yp.Data = yp.Data - mean(yp.Data);
-
-u_i  = interp1(u.Time,  u.Data,  t);
-ys_i = interp1(ys.Time, ys.Data, t);
-yp_i = interp1(yp.Time, yp.Data, t);
-
-% Filter
-y_p_f = filtfilt(b,a,yp_i);
-y_s_f = filtfilt(b,a,ys_i);
-
-data_rgsc_sledge   = iddata(ys_i, u_i, Ts);
-data_rgsc_pendulum = iddata(y_p_f, ys_i, Ts);
 
 

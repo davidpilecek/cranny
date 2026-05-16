@@ -70,7 +70,6 @@ Kt = p_best(1);
 Jm = p_best(2);
 Dm = p_best(3);
 Ds = p_best(4);
-ms = p_best(5);
 
 fprintf('\n===== IDENTIFIED PARAMETERS =====\n');
 
@@ -78,18 +77,22 @@ fprintf('Kt = %.6e kg*m^2\n', Kt);
 fprintf('Jm = %.6e kg*m^2\n', Jm);
 fprintf('Dm = %.6e Nm/(rad/s)\n', Dm);
 fprintf('Ds = %.6f N*s/m\n', Ds);
-fprintf('ms = %.6f kg\n', ms);
 
 fprintf('\nFinal Cost = %.8e\n', best_cost);
 
 rm = 0.007;      % [m]
-% ms = 0.93;       % [kg]
+ms = 0.93;       % [kg]
 Ra = 0.368;      % [Ohm]
 Ke = Kt;
 
+% Kt = 1.295458e-01 kg*m^2
+% Jm = 3.076092e-03 kg*m^2
+% Dm = 4.550832e-04 Nm/(rad/s)
+% Ds = 50.150339 N*s/m
+
 %% 8. Validation Plot
 
-exp_data = data_ramp_sledge;
+exp_data = data_sine_sledge;
 
 t_data = exp_data.SamplingInstants(:);
 u_data = exp_data.InputData(:);
