@@ -80,15 +80,61 @@ fprintf('Ds = %.6f N*s/m\n', Ds);
 
 fprintf('\nFinal Cost = %.8e\n', best_cost);
 
+%%
 rm = 0.007;      % [m]
 ms = 0.93;       % [kg]
 Ra = 0.368;      % [Ohm]
+
+Kt = 1.295458e-01;
+Jm = 3.076092e-03;
+Dm = 4.550832e-04;
+Ds = 50.150339;
 Ke = Kt;
 
-% Kt = 1.295458e-01 kg*m^2
-% Jm = 3.076092e-03 kg*m^2
-% Dm = 4.550832e-04 Nm/(rad/s)
-% Ds = 50.150339 N*s/m
+num = Kt/(rm*Ra);
+den = [(ms + Jm/(rm^2)) (Kt*Ke/(Ra*rm^2) + Dm/(rm^2) + Ds) 0];
+
+tf_sledge = tf(num, den)
+
+%%
+opt = compareOptions('InitialCondition','z');
+compare(data_bang_sledge, tf_sledge, opt)
+figure
+compare(data_pulse_sledge, tf_sledge, opt)
+figure
+compare(data_sine_sledge, tf_sledge, opt)
+figure
+compare(data_sine2_sledge, tf_sledge, opt)
+figure
+compare(data_step_sledge, tf_sledge, opt)
+
+
+%%
+data = {data_bang_sledge, data_pulse_sledge, data_sine_sledge, data_sine2_sledge, data_step_sledge, data_bang_sledge};
+
+% plot(lsim(tf_sledge, data{1}.InputData, data{1}.SamplingInstants), 'r--')
+% hold on
+% plot(data{1}.OutputData, 'black')
+
+%%
+total_r2 = 0
+
+for d = 1:numel(data)
+    source = data{d}
+    y_meas = source.OutputData(:);
+
+    y_sim = lsim(tf_sledge, source.InputData, source.SamplingInstants);
+    y_sim = y_sim(:);
+
+    R2 = 1 - sum((y_meas - y_sim).^2) / ...
+             sum((y_meas - mean(y_meas)).^2);
+    total_r2 = total_r2 + R2;
+end
+disp(total_r2/numel(data))
+
+%%
+
+mean([21, 92, 55, 71, 61])
 
 %% 8. Validation Plot
 

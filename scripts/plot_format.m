@@ -6,16 +6,16 @@ function plot_format()
     set(groot, 'defaultLegendInterpreter','latex');
 
     % Font + size
-    set(groot, 'defaultAxesFontName','Times New Roman');
-    set(groot, 'defaultTextFontName','Times New Roman');
-    set(groot, 'defaultLegendFontName','Times New Roman');
+    set(groot, 'defaultAxesFontName','Helvetica');
+    set(groot, 'defaultTextFontName','Helvetica');
+    set(groot, 'defaultLegendFontName','Helvetica');
     
     set(groot, 'defaultAxesFontWeight','bold');
     set(groot, 'defaultTextFontWeight','bold');
     set(groot, 'defaultLegendFontWeight','bold');
     
-    set(groot, 'defaultAxesFontSize',15);
-    set(groot, 'defaultTextFontSize',15);
+    set(groot, 'defaultAxesFontSize',20);
+    set(groot, 'defaultTextFontSize',20);
 
 
     % Line + grid
@@ -28,7 +28,7 @@ function plot_format()
     % Figure defaults (good for papers)
     set(groot, 'defaultFigureColor','w');
     set(groot, 'defaultFigureUnits','centimeters');
-    set(groot, 'defaultFigurePosition',[5 5 14 9]); % ~single-column width
+    set(groot, 'defaultFigurePosition',[5 5 20 10]); % ~single-column width
 
    
     % Legend (opaque box)

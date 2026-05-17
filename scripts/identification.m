@@ -131,7 +131,6 @@ ioDelay = delayest(source) * Ts
 tfPend = tfest(source, np, nz, ioDelay, Opt)
 
 %% Validate pendulum
-tfPend2 = tf([4.739 0 0], [1 0.09515 46.54])
 
 Lr = 0.205;
 Lp = 0.2375;
@@ -139,20 +138,104 @@ ml = 0.272;
 mr = 0.135;
 g  = 9.82;
     
-
 Jp = 0.0166;
 Dp = 0.0011;
 
 num = [(Lp*ml + 0.5*Lr*mr)/Jp 0 0]
 den = [1 Dp/Jp (Lp*ml + 0.5*Lr*mr)*g/Jp]
 
-tfPend = tf(num, den)
-[wn, zeta] = damp(tfPend)
+tf_pend = tf(num, den)
+% [wn, zeta] = damp(tfPend)
 
-tfPend_n = tfPend
+%%
 
-% rltool(tfPend)
-% rlocus(tfPend_ga)
+data = {data_pulse_pendulum, data_bang_pendulum, data_sine_pendulum, data_sine2_pendulum, data_step_pendulum, data_saw_pendulum};
+total_r2_pend = 0
+
+for d = 1:numel(data)
+    source = data{d}
+    y_meas = source.OutputData(:);
+
+    y_sim = lsim(tfPend, source.InputData, source.SamplingInstants);
+    y_sim = y_sim(:);
+
+    R2 = 1 - sum((y_meas - y_sim).^2) / ...
+             sum((y_meas - mean(y_meas)).^2);
+    total_r2_pend = total_r2_pend + R2;
+end
+disp(total_r2_pend/numel(data))
+
+%%
+
+%%
+g = spa(data_step_pendulum);
+
+bode(g, tfPend)
+
+legend('Measured FRF','Model')
+%%
+opt = compareOptions('InitialCondition','z');
+compare(data_bang_pendulum(1:2000), tfPend,'r--', opt)
+figure
+compare(data_pulse_pendulum, tfPend, opt)
+figure
+compare(data_ramp_pendulum, tfPend, opt)
+figure
+compare(data_saw_pendulum, tfPend, opt)
+figure
+compare(data_sine_pendulum, tfPend, opt)
+figure
+compare(data_sine2_pendulum, tfPend, opt)
+figure
+compare(data_step_pendulum, tfPend, opt)
+figure
+compare(data_prbs_pendulum, tfPend, opt)
+
+%%
+mean([60.7, 59.4, 52.5, 92.4, 89.2, 87.8, 70.23, 86])
+
+%% Validate sledge
+% rm = 0.007;      % [m]
+% ms = 0.93;       % [kg]
+% Ra = 0.368;      % [Ohm]
+% 
+% Kt = 1.295458e-01;
+% Jm = 3.076092e-03;
+% Dm = 4.550832e-04;
+% Ds = 50.150339;
+% Ke = Kt;
+
+rm = 0.007;      % [m]
+ms = 0.93;       % [kg]
+Ra = 9.9694e-04;      % [Ohm]
+
+Kt = 0.0341 ;
+Jm = 0.0985;
+Dm = 1.0503e-04;
+Ds = 16.3977 ;
+Ke = Kt;
+
+num = Kt/(rm*Ra);
+den = [(ms + Jm/(rm^2)) (Kt*Ke/(Ra*rm^2) + Dm/(rm^2) + Ds) 0];
+
+tf_sledge = tf(num, den)
+
+%% 
+opt = compareOptions('InitialCondition','z');
+compare(data_bang_sledge, tf_sledge)
+figure
+compare(data_pulse_sledge, tf_sledge)
+figure
+compare(data_ramp_sledge, tf_sledge)
+figure
+compare(data_saw_sledge, tf_sledge)
+figure
+compare(data_sine_sledge, tf_sledge)
+figure
+compare(data_sine2_sledge, tf_sledge)
+figure
+compare(data_step_sledge, tf_sledge)
+
 
 %%
 source = data_ramp_pendulum;

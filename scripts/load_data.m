@@ -38,7 +38,6 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
-
 tmin = 45;
 tmax = 40;
 idx = t >=tmin;
@@ -50,10 +49,8 @@ yp_i = interp1(yp.Time, yp.Data, t);
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
 
-
 data_prbs_sledge    = iddata(y_s_f, u_i, Ts);
 data_prbs_pendulum  = iddata(y_p_f, ys_i, Ts);
-
 
 %
 % === PRBS2 ======================================
@@ -119,7 +116,6 @@ yp_i = interp1(yp.Time, yp.Data, t);
 % Filter
 y_p_f = filtfilt(b,a,yp_i);
 y_s_f = filtfilt(b,a,ys_i);
-
 
 data_step_sledge   = iddata(y_s_f, u_i, Ts);
 data_step_pendulum = iddata(y_p_f, ys_i, Ts);
@@ -210,8 +206,8 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
-ys.Data = detrend(ys.Data);
-ys.Data = ys.Data + abs(ys.Data(1));
+% ys.Data = detrend(ys.Data);
+% ys.Data = ys.Data + abs(ys.Data(1));
 
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);
