@@ -17,7 +17,6 @@ function plot_format()
     set(groot, 'defaultAxesFontSize',20);
     set(groot, 'defaultTextFontSize',20);
 
-
     % Line + grid
     set(groot, 'defaultLineLineWidth',1.5);
     set(groot, 'defaultAxesLineWidth',1);

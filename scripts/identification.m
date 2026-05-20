@@ -18,7 +18,6 @@ rltool(tfSledge)
 %%
 
 tfSledge_j = tf([4.88], [20.11 238.20 0])
-
 %% Validate sledge
 source_val = data_prbs_sledge;
 figure
@@ -30,7 +29,6 @@ figure
 plot(y_sim)
 hold on
 plot(source_val.OutputData)
-
 %%
 y_sim = lsim(tfSledge, source_val.InputData, t, x0);
 figure
@@ -145,7 +143,28 @@ num = [(Lp*ml + 0.5*Lr*mr)/Jp 0 0]
 den = [1 Dp/Jp (Lp*ml + 0.5*Lr*mr)*g/Jp]
 
 tf_pend = tf(num, den)
-% [wn, zeta] = damp(tfPend)
+
+% bode(tf_pend)
+% pzmap(tf_pend)
+
+% Sledge
+rm = 0.007;      % [m]
+ms = 0.93;       % [kg]
+Ra = 9.9694e-04;      % [Ohm]
+
+Kt = 0.0341 ;
+Jm = 0.0985;
+Dm = 1.0503e-04;
+Ds = 16.3977 ;
+Ke = Kt;
+
+num = Kt/(rm*Ra);
+den = [(ms + Jm/(rm^2)) (Kt*Ke/(Ra*rm^2) + Dm/(rm^2) + Ds) 0];
+figure
+tf_sledge = tf(num, den)
+
+% bode(tf_sledge)
+% pzmap(tf_sledge)
 
 %%
 

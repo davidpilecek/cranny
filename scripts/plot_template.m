@@ -21,7 +21,6 @@ title("Sledge Position", "FontSize",14)
 ylabel("Position (m)")
 % legend('Measured', 'Simulated');
 
-
 % Tight layout
 subplot(2,1,2)
 plot(data_pend{idx}.SamplingInstants, data_pend{idx}.OutputData, 'black', 'LineWidth', 2); hold on;
@@ -31,7 +30,6 @@ title("Pendulum Angle", "FontSize",14)
 xlabel("Time (s)")
 ylabel("Angle (rad)")
 % legend('Measured', 'Simulated');
-
 
 % Export (vector for report)
 exportgraphics(gcf, 'sine.pdf', 'ContentType','vector');
@@ -70,7 +68,6 @@ f = figure; hold on;
 f.Units = 'centimeters';
 f.Position = [2 2 25 20];
 
-
 subplot(3,1,1)
 plot(t, y1, 'b--', 'LineWidth', 2); hold on;
 stem(0, A1, 'k', 'filled');
@@ -101,7 +98,6 @@ axis tight;
 %% Export (vector for report)
 exportgraphics(gcf, 'input_shaping_report.pdf', 'ContentType','vector');
 
-
 %%
 
 close all;
@@ -110,34 +106,35 @@ plot_format();   % apply styling
 data_sledge = {data_bang_sledge, data_pulse_sledge, data_sine_sledge, data_sine2_sledge, data_step_sledge};
 data_pend = {data_bang_pendulum, data_pulse_pendulum, data_sine_pendulum, data_sine2_pendulum, data_step_pendulum};
 
-idx = 3;
+idx = 5;
 % Create figure
 f = figure; hold on;
 
 f.Units = 'centimeters';
-f.Position = [2 2 18 10];
+f.Position = [2 2 25 10];
 
-plot('black', 'LineWidth', 2); hold on;
-plot(); hold on;
-axis tight; grid on;
-title("Sledge Position", "FontSize",14)
-xlabel("Time (s)")
-ylabel("Position (m)")
-% legend('Measured', 'Simulated');
-
+% plot('black', 'LineWidth', 2); hold on;
+% plot(); hold on;
+% axis tight; grid on;
+% title("Sledge Position", "FontSize",14)
+% xlabel("Time (s)")
+% ylabel("Position (m)")
+% % legend('Measured', 'Simulated');
+% 
 
 % Tight layout
-subplot(2,1,2)
+% subplot(2,1,2)
+
 plot(data_pend{idx}.SamplingInstants, data_pend{idx}.OutputData, 'black', 'LineWidth', 2); hold on;
 plot(data_pend{idx}.SamplingInstants, lsim(tf_pend, data_pend{idx}.InputData, data_pend{idx}.SamplingInstants), 'r--', 'LineWidth', 2)
 axis tight; grid on;
-title("Pendulum Angle", "FontSize",14)
+title("Pendulum Angle", "FontSize",20)
 xlabel("Time (s)")
 ylabel("Angle (rad)")
 
 
 %% Export (vector for report)
-exportgraphics(gcf, 'sine.pdf', 'ContentType','vector');
+exportgraphics(gcf, 'step_pend.pdf', 'ContentType','vector');
 
 %%
 
