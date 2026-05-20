@@ -138,3 +138,73 @@ ylabel("Angle (rad)")
 
 %% Export (vector for report)
 exportgraphics(gcf, 'sine.pdf', 'ContentType','vector');
+
+%%
+
+base = "plots/";
+
+% ===== ONLY EDIT THIS =====
+signal = "pulse";
+
+t_max = inf;   % set e.g. 5 to plot first 5 seconds, or inf for full signal
+% ==========================
+
+% Load datasets
+data_sledge   = eval("data_" + signal + "_sledge");
+data_pendulum = eval("data_" + signal + "_pendulum");
+
+% Common time vector
+x = data_sledge.SamplingInstants;
+
+% Build time mask
+if isfinite(t_max)
+    idx = x <= t_max;
+else
+    idx = true(size(x));
+end
+
+% Optional safety check
+assert(numel(x) == numel(data_pendulum.OutputData), ...
+    'Time vector mismatch between sledge and pendulum');
+
+% Define plots
+plots = {
+    data_sledge.InputData,    "input",    '\textbf{Voltage (V)}',   [0 0 0];
+    data_sledge.OutputData,   "sledge",   '\textbf{Position (m)}',  [0 0 1];
+    data_pendulum.OutputData, "pendulum", '\textbf{Angle (rad)}',   [1 0 0];
+};
+
+% Loop
+for i = 1:size(plots,1)
+
+    y_full   = plots{i,1};
+    suffix   = plots{i,2};
+    ylabel_t = plots{i,3};
+    color    = plots{i,4};
+
+    % Apply same time mask
+    y = y_full(idx);
+    x_plot = x(idx);
+
+    fig = figure('Units', 'centimeters', 'Position', [5, 5, 35, 15]);
+    hold on; grid on;
+
+    plot(x_plot, y, ...
+        'LineWidth', 1.3, ...
+        'Color', color);
+
+    set(gca, ...
+        'TickLabelInterpreter', 'latex', ...
+        'FontSize', 18, ...
+        'FontName', 'Times New Roman', ...
+        'Box', 'on', ...
+        'LineWidth', 1.2);
+
+    xlabel('\textbf{Time (s)}', 'Interpreter', 'latex', 'FontSize', 22);
+    ylabel(ylabel_t, 'Interpreter', 'latex', 'FontSize', 22);
+
+    filename = base + signal + "_" + suffix + ".pdf";
+    exportgraphics(fig, filename, 'ContentType', 'vector');
+
+    close(fig);
+end
