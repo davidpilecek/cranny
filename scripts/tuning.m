@@ -1,64 +1,5 @@
 clc;
 clear;
-
-s = tf('s');
-
-% Transfer functions
-
-Gx = (50.29)/(63.71*s^2 + 990.1*s);      % U -> X
-Ga = (4.725*s^2 * 180/pi)/(s^2 + 0.06627*s + 46.4);      % X -> Alpha
-
-% References
-
-x = load("input_tuning.mat").Scenario{1}; % desired cart position
-t = 0:0.01:x.TimeInfo.End;
-t = t(:);
-xd = [t, x];
-xd = xd.Data;
-ad = zeros(size(t));    % desired pendulum angle
-
-% Optimization bounds
-
-lb = [0 0 0];
-ub = [100 100 2];
-
-% Run optimization
-
-hybridOptions = optimoptions( ...
-    'fmincon', ...
-    'Display', 'none', ...
-    'Algorithm', 'sqp');
-
-options = optimoptions( ...
-    'particleswarm', ...
-    'SwarmSize', 50, ...
-    'MaxIterations', 100, ...
-    'HybridFcn', {@fmincon, hybridOptions}, ...
-    'Display', 'iter', ...
-    'PlotFcn', 'pswplotbestf');
-
-% 6. Run Optimization
-
-rng default
-
-[xbest,Jbest] = particleswarm( ...
-    @(p) costFun(p,Gx,Ga,t,xd,ad), ...
-    3,lb,ub, options);
-
-disp('Optimal gains:')
-disp(xbest)
-
-disp('Cost:')
-disp(Jbest)
-
-%%
-clc;
-clear;
-
-s = tf('s');
-
-set_param('gantryModel','FastRestart','on')
-
 % Optimization bounds
 
 lb = [0 0 0];
@@ -67,10 +8,9 @@ ub = [100 100 2];
 % Run optimization
 options = optimoptions( ...
     'particleswarm', ...
-    'SwarmSize', 50, ...
+    'SwarmSize', 70, ...
     'MaxIterations', 200, ...
-    'Display', 'iter', ...
-    'PlotFcn', 'pswplotbestf');
+    'Display', 'iter');
 
 % 6. Run Optimization
 
@@ -87,3 +27,55 @@ disp(xbest)
 
 disp('Cost:')
 disp(Jbest)
+
+%%
+
+Kpx = 9.3453
+
+Kpa =  0.3292
+Kda = 0.0020
+
+%% Gains
+
+Kpx = p(1);
+Kpa = p(2);
+Kda = p(3);
+
+%% Send gains to Simulink
+
+assignin('base','Kpx',Kpx);
+assignin('base','Kpa',Kpa);
+assignin('base','Kda',Kda);
+
+%% Run simulation
+
+simOut = sim( ...
+    'gantryModel', ...
+    'StopTime','15',...
+    'FastRestart','on');
+
+% Extract logged signals
+
+x = simOut.logsout.get('x').Values.Data;
+alpha = simOut.logsout.get('alpha').Values.Data;
+u = simOut.logsout.get('u').Values.Data;
+xd = simOut.logsout.get('ref').Values.Data;
+
+t = simOut.tout;
+
+% Errors
+ad = 0;
+
+ex = xd - x;
+ea = ad - alpha;
+
+maxAngle = max(abs(alpha));
+% Cost
+overshoot = (max(x) - xd(end))/xd(end) * 100;
+if overshoot < 0
+    overshoot = 0;
+end
+
+%
+J = 20*trapz(t,ex.^2) ...
+  + trapz(t,ea.^2);

@@ -1,5 +1,24 @@
 function J = costFun(p)
 
+
+persistent bestJ
+
+if isempty(bestJ)
+    bestJ = inf;
+end
+
+persistent fid
+
+if isempty(fid)
+
+    fid = fopen('cascade_pend_inner_abs.csv','a');
+
+    fprintf(fid,...
+        'Kpx,Kpa,Kda,MaxAngle, Overshoot, J\n');
+
+end
+
+
 %% Gains
 
 Kpx = p(1);
@@ -16,30 +35,45 @@ assignin('base','Kda',Kda);
 
 simOut = sim( ...
     'gantryModel', ...
-    'StopTime','40',...
-    'FastRestart','on',...
-    'FixedStep','0.01');
+    'StopTime','15',...
+    'FastRestart','on');
 
 %% Extract logged signals
 
 x = simOut.logsout.get('x').Values.Data;
 alpha = simOut.logsout.get('alpha').Values.Data;
 u = simOut.logsout.get('u').Values.Data;
+xd = simOut.logsout.get('ref').Values.Data;
 
 t = simOut.tout;
 
 %% Errors
-
-xd = 1;
 ad = 0;
 
 ex = xd - x;
 ea = ad - alpha;
 
+maxAngle = max(abs(alpha));
 %% Cost
+overshoot = (max(x) - xd(end))/xd(end) * 100;
+if overshoot < 0
+    overshoot = 0;
+end
 
-J = 30*trapz(t,ex.^2) ...
-  + trapz(t,ea.^2);
+%%
+
+% J = 30*trapz(t,ex.^2) ...
+%   + trapz(t,ea.^2) + 5000*ex(end)^2;
+
+J = 30*trapz(t,abs(ex)) ...
+  + trapz(t,abs(ea)) + 5000*ex(end)^2;
+
+% if max(x) < 0.95*xd(end)
+% 
+%     J = 1e12;
+%     return;
+% 
+% end
 
 %% Constraint on voltage
 
@@ -49,7 +83,14 @@ if max(abs(u)) > 16
 end
 %% Constraint on angle
 
-if max(abs(alpha)) > 8
+if maxAngle > 8
+    J = 1e12;
+    return;
+end
+
+%% Reject overshoot
+
+if overshoot > 10
     J = 1e12;
     return;
 end
@@ -58,9 +99,14 @@ end
 
 if any(isnan(x)) || any(isnan(alpha))
     J = 1e12;
+    endW
 end
+%%
 
-% fprintf('Kpx=%.2f  Kpa=%.2f  Kda=%.2f  MaxAngle=%.1f J=%.2f\n ', ...
-    % Kpx,Kpa,Kda,max(abs(alpha)), J);
+if J < bestJ
+    bestJ = J;
 
+    fprintf(fid,...
+        '%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n',...
+        Kpx,Kpa,Kda,maxAngle,overshoot,J);
 end
