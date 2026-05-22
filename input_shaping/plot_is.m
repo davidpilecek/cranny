@@ -2,7 +2,6 @@ clc; clear; close all;
 
 plot_format();   % apply styling
 
-
 %%
 
 close all;
@@ -11,9 +10,6 @@ pendulum_noIS = load("input_shaping\simulation\pendulum_noIS.mat").ans;
 pendulum_ZV = load("input_shaping\simulation\pendulum_ZV.mat").ans;
 pendulum_ZVD = load("input_shaping\simulation\pendulum_ZVD.mat").ans;
 pendulum_ZVDD = load("input_shaping\simulation\pendulum_ZVDD.mat").ans;
-
-idx = pendulum_noIS.Time <= 18;
-data = pendulum_noIS.Data(idx);
 
 figure; hold on;
 

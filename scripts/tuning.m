@@ -30,10 +30,10 @@ disp(Jbest)
 
 %%
 
-Kpx = 9.3453
+Kpx = 3.95
 
-Kpa =  0.3292
-Kda = 0.0020
+Kpa =  0.203
+Kda = 0.032
 
 %% Gains
 
