@@ -11,13 +11,7 @@ np = 2;
 ioDelay = delayest(source) * Ts;
 
 tfSledge = tfest(source, np, 0, ioDelay, Opt)
-%%
-compare(data_rgsc_sledge, tfSledge)
-%%
-rltool(tfSledge)
-%%
 
-tfSledge_j = tf([4.88], [20.11 238.20 0])
 %% Validate sledge
 source_val = data_prbs_sledge;
 figure
@@ -82,52 +76,6 @@ hold on
 plot(out.pend.Time, out.pend.Data*180/pi)
 legend("simulated", "real")
 
-%% GREYBOX PENDULUM
-
-% data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_ramp_pendulum, data_pulse_pendulum, data_prbs_pendulum);
-data_estimate_pendulum = merge(data_bang_pendulum, data_saw_pendulum, data_pulse_pendulum, data_step_pendulum, data_sine2_pendulum, data_ramp_pendulum, data_prbs_pendulum);
-
-% Initial guesses
-Jp0 = 0.016;
-Dp0 = 0.008;
-
-par0 = [Jp0; Dp0];
-
-sys = idgrey('pendulum_model', par0, 'c');
-sys.Structure.Parameters(1).Minimum = 0; % Jp > 0
-sys.Structure.Parameters(2).Minimum = 0; % Dp > 0
-
-opt = greyestOptions;
-opt.Display = "on";
-opt.InitialState = 'zero';
-
-sys_est = greyest(data_estimate_pendulum, sys, opt);
-tfPend = tf(sys_est)
-
-%% Validate pendulum
-source_val_pend = data_step_pendulum;
-figure
-compare(source_val_pend, tfPend)
-t = (0:length(source_val_pend.InputData)-1)' * Ts;
-
-y_sim = lsim(tfPend, source_val_pend.InputData, t);
-figure
-plot(y_sim)
-hold on
-plot(source_val_pend.OutputData)
-
-%% Estimate tf pendulum
-% source = data_prbs_pendulum;
-
-Opt = tfestOptions('Display','on');
-np = 2;
-nz = 2;
-
-source = merge(data_prbs_pendulum, data_bang_pendulum, data_saw_pendulum, data_sine2_pendulum);
-% source = data_prbs_pendulum;
-ioDelay = delayest(source) * Ts
-tfPend = tfest(source, np, nz, ioDelay, Opt)
-
 %% Validate pendulum
 
 Lr = 0.205;
@@ -144,54 +92,105 @@ den = [1 Dp/Jp (Lp*ml + 0.5*Lr*mr)*g/Jp]
 
 tf_pend = tf(num, den)
 
-% bode(tf_pend)
-% pzmap(tf_pend)
+%%
 
-% Sledge
+data = {data_pulse_pendulum, data_bang_pendulum, data_sine_pendulum, data_step_pendulum};
+total_rmse = 0;
+total_r2 = 0;
+total_fit = 0;
+
+
+opt = compareOptions('InitialCondition','z');
+figure
+compare(data{1}, tf_pend, opt);
+figure
+compare(data{2}, tf_pend, opt);
+figure
+compare(data{3}, tf_pend, opt);
+figure
+compare(data{4}, tf_pend, opt);
+
+%%
+
+for d = 1:numel(data)
+    source = data{d};
+    [y_hat, fit, ~] = compare(source, tf_pend, opt);
+    y = source.y;
+    rmse = sqrt(mean((y - y_hat.OutputData).^2));
+   
+    y_sim = lsim(tf_pend, source.InputData, source.SamplingInstants);
+    y_sim = y_sim(:);
+    y_meas = source.OutputData;
+    R2 = 1 - sum((y_meas - y_sim).^2) / ...
+             sum((y_meas - mean(y_meas)).^2);
+
+    total_rmse = total_rmse + rmse;
+    total_fit = total_fit + fit;
+    total_r2 = total_r2 + R2;
+end
+disp("RMSE = " + total_rmse/numel(data))
+disp("fit = " + total_fit/numel(data))
+disp("Rsq = " + total_r2/numel(data))
+
+
+%% Sledge
 rm = 0.007;      % [m]
 ms = 0.93;       % [kg]
-Ra = 9.9694e-04;      % [Ohm]
+Ra = 0.368;      % [Ohm]
 
-Kt = 0.0341 ;
-Jm = 0.0985;
-Dm = 1.0503e-04;
-Ds = 16.3977 ;
+Kt = 1.295458e-01;
+Jm = 3.076092e-03;
+Dm = 4.550832e-04;
+Ds = 50.150339;
 Ke = Kt;
 
 num = Kt/(rm*Ra);
 den = [(ms + Jm/(rm^2)) (Kt*Ke/(Ra*rm^2) + Dm/(rm^2) + Ds) 0];
-figure
+
 tf_sledge = tf(num, den)
 
-% bode(tf_sledge)
-% pzmap(tf_sledge)
+frd_est = spa(data_prbs_sledge);
+bode(frd_est, tf_sledge)
 
 %%
+data = {data_pulse_sledge, data_bang_sledge, data_sine_sledge, data_step_sledge};
+total_rmse = 0;
+total_r2 = 0;
+total_fit = 0;
 
-data = {data_pulse_pendulum, data_bang_pendulum, data_sine_pendulum, data_sine2_pendulum, data_step_pendulum, data_saw_pendulum};
-total_r2_pend = 0
+%
+opt = compareOptions('InitialCondition','z');
+figure
+compare(data{1}, tf_sledge, opt);
+figure
+compare(data{2}, tf_sledge, opt);
+figure
+compare(data{3}, tf_sledge, opt);
+figure
+compare(data{4}, tf_sledge, opt);
+
+%
 
 for d = 1:numel(data)
-    source = data{d}
-    y_meas = source.OutputData(:);
-
-    y_sim = lsim(tfPend, source.InputData, source.SamplingInstants);
+    source = data{d};
+    [y_hat, fit, ~] = compare(source, tf_sledge, opt);
+    y = source.y;
+    rmse = sqrt(mean((y - y_hat.OutputData).^2));
+   
+    y_sim = lsim(tf_sledge, source.InputData, source.SamplingInstants);
     y_sim = y_sim(:);
-
+    y_meas = source.OutputData;
     R2 = 1 - sum((y_meas - y_sim).^2) / ...
              sum((y_meas - mean(y_meas)).^2);
-    total_r2_pend = total_r2_pend + R2;
+
+    total_rmse = total_rmse + rmse;
+    total_fit = total_fit + fit;
+    total_r2 = total_r2 + R2;
 end
-disp(total_r2_pend/numel(data))
+disp("RMSE = " + total_rmse/numel(data))
+disp("fit = " + total_fit/numel(data))
+disp("Rsq = " + total_r2/numel(data))
 
-%%
-
-%%
-g = spa(data_step_pendulum);
-
-bode(g, tfPend)
-
-legend('Measured FRF','Model')
 %%
 opt = compareOptions('InitialCondition','z');
 compare(data_bang_pendulum(1:2000), tfPend,'r--', opt)

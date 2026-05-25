@@ -11,10 +11,10 @@ pendulum_ZV = load("input_shaping\simulation\pendulum_ZV.mat").ans;
 pendulum_ZVD = load("input_shaping\simulation\pendulum_ZVD.mat").ans;
 pendulum_ZVDD = load("input_shaping\simulation\pendulum_ZVDD.mat").ans;
 
-figure; hold on;
+f = figure; hold on;
 
-% f.Units = 'centimeters';
-% f.Position = [2 2 25 12];
+f.Units = 'centimeters';
+f.Position = [2 2 25 12];
 
 plot(pendulum_noIS.Time(idx), pendulum_noIS.Data(idx), 'LineWidth', 1, 'Color',[0.5 0.5 0.5]); hold on;
 plot(pendulum_ZV.Time(idx),pendulum_ZV.Data(idx),'r-', 'LineWidth', 2); hold on;
@@ -23,8 +23,8 @@ plot(pendulum_ZVDD.Time(idx),pendulum_ZVDD.Data(idx),'b-', 'LineWidth', 2); hold
 
 legend('Unshaped','ZV','ZVD','ZVDD');
 % title('Comparison of Input Shaping Methods')
-xlabel('Time [s]')
-ylabel('Angle [rad]')
+xlabel('Time (s)')
+ylabel('Angle (rad)')
 grid on
 box on
 % Tight layout
@@ -53,8 +53,8 @@ plot(sledge_ZVDD.Time(idx),sledge_ZVDD.Data(idx),'b-', 'LineWidth', 2); hold on;
 
 legend('Unshaped','ZV','ZVD','ZVDD');
 % title('Comparison of Input Shaping Methods')
-xlabel('Time [s]')
-ylabel('Position [m]')
+xlabel('Time (s)')
+ylabel('Position (m)')
 grid on
 box on
 % Tight layout
@@ -86,8 +86,8 @@ plot(sledge_ZVDD.Time(idx),sledge_ZVDD.Data(idx),'b-', 'LineWidth', 2); hold on;
 
 legend('Unshaped','ZV','ZVD','ZVDD');
 % title('Comparison of Input Shaping Methods')
-xlabel('Time [s]')
-ylabel('Position [m]')
+xlabel('Time (s)')
+ylabel('Position (m)')
 grid on
 box on
 % Tight layout
@@ -119,8 +119,8 @@ plot(pend_ZVDD.Time(idx),pend_ZVDD.Data(idx),'b-', 'LineWidth', 2); hold on;
 
 legend('Unshaped','ZV','ZVD','ZVDD');
 % title('Comparison of Input Shaping Methods')
-xlabel('Time [s]')
-ylabel('Angle [rad]')
+xlabel('Time (s)')
+ylabel('Angle (rad)')
 grid on
 box on
 % Tight layout
@@ -153,8 +153,8 @@ plot(input_ZVDD.Time(idx),input_ZVDD.Data(idx),'b-', 'LineWidth', 2); hold on;
 
 legend('Unshaped','ZV','ZVD','ZVDD');
 % title('Comparison of Input Shaping Methods')
-xlabel('Time [s]')
-ylabel('Voltage [V]')
+xlabel('Time (s)')
+ylabel('Voltage (V)')
 grid on
 box on
 % Tight layout

@@ -11,7 +11,7 @@ persistent fid
 
 if isempty(fid)
 
-    fid = fopen('cascade_pend_inner_abs.csv','a');
+    fid = fopen('cascade_pend_inner_report2.csv','a');
 
     fprintf(fid,...
         'Kpx,Kpa,Kda,MaxAngle, Overshoot, J\n');
@@ -35,7 +35,7 @@ assignin('base','Kda',Kda);
 
 simOut = sim( ...
     'gantryModel', ...
-    'StopTime','15',...
+    'StopTime','17',...
     'FastRestart','on');
 
 %% Extract logged signals
@@ -50,12 +50,13 @@ t = simOut.tout;
 %% Errors
 ad = 0;
 
-ex = xd - x;
+ex = 0.8 - x;
 ea = ad - alpha;
 
 maxAngle = max(abs(alpha));
 %% Cost
 overshoot = (max(x) - xd(end))/xd(end) * 100;
+
 if overshoot < 0
     overshoot = 0;
 end
@@ -74,6 +75,10 @@ J = 30*trapz(t,abs(ex)) ...
 %     return;
 % 
 % end
+
+fprintf(fid,...
+        '%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n',...
+        Kpx,Kpa,Kda,maxAngle,overshoot,J);
 
 %% Constraint on voltage
 
@@ -103,10 +108,3 @@ if any(isnan(x)) || any(isnan(alpha))
 end
 %%
 
-if J < bestJ
-    bestJ = J;
-
-    fprintf(fid,...
-        '%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n',...
-        Kpx,Kpa,Kda,maxAngle,overshoot,J);
-end

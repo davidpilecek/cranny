@@ -206,8 +206,8 @@ tmax = min([u.Time(end), ys.Time(end), yp.Time(end)]);
 t = (tmin:Ts:tmax)';
 yp.Data = yp.Data - mean(yp.Data);
 
-% ys.Data = detrend(ys.Data);
-% ys.Data = ys.Data + abs(ys.Data(1));
+ys.Data = detrend(ys.Data);
+ys.Data = ys.Data + abs(ys.Data(1));
 
 u_i  = interp1(u.Time,  u.Data,  t);
 ys_i = interp1(ys.Time, ys.Data, t);

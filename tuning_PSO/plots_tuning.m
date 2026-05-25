@@ -1,8 +1,15 @@
 close all;
-
+plot_format();
 gains = readtable('logs/cascade_cart_inner_abs.csv');
 
 gens = [1, 2, 5, 10, 20, 70];
+
+f = figure; hold on;
+
+f.Units = 'centimeters';
+f.Position = [2 2 30 15];
+
+colors = turbo(length(gens));
 
 for i = 1:length(gens)
 
@@ -34,22 +41,162 @@ t = simOut.tout;
 % ref = [xd, t]
 ref = linspace(xd, xd, length(t));
 
-% % Errors
-% ad = 0;
-% ex = xd - x;
-% ea = ad - alpha;
-
-% figure
-% plot(t, ref, "b--", LineWidth=2)
-% hold on
-% plot(t, x, LineWidth=2)
-% legend("reference", "cart position")
-
-% figure
-plot(t, alpha)
+plot(t, alpha, ...
+    'LineWidth',2, ...
+    'Color',colors(i,:))
 hold on
 end
 
+% title("Pendulum sway across genera")
+xlabel("Time (s)")
+ylabel("Angle (deg)")
+lgd = legend( ...
+    'Generation 1', ...
+    'Generation 2', ...
+    'Generation 5', ...
+    'Generation 10', ...
+    'Generation 20', ...
+    'Final Generation');
+
+lgd.Position(3) = lgd.Position(3) + 0.02;
+
+%%
+exportgraphics(gcf, "pendulum_tuning_progression.pdf")
+
+%%
+
+close all;
+
+gains = readtable('logs/cascade_cart_inner_abs.csv');
+
+gens = [1, 2, 5, 10, 20, 70];
+
+f = figure; hold on;
+
+f.Units = 'centimeters';
+f.Position = [2 2 30 15];
+
+colors = turbo(length(gens));
+
+for i = 1:length(gens)
+
+id_gain = gens(i);
+
+% Gains
+Kpx = gains.Kpx(id_gain)
+Kpa = gains.Kpa(id_gain)
+Kda = gains.Kda(id_gain)
+
+% Send gains to Simulink
+
+assignin('base','Kpx',Kpx);
+assignin('base','Kpa',Kpa);
+assignin('base','Kda',Kda);
+
+% Run simulation
+simOut = sim( ...
+    'gantryModel', ...
+    'StopTime','18');
+    % 'FastRestart','on');
+
+% Extract logged signals
+x = simOut.logsout.get('x').Values.Data;
+alpha = simOut.logsout.get('alpha').Values.Data;
+xd = simOut.logsout.get('ref').Values.Data;
+
+t = simOut.tout;
+% ref = [xd, t]
+ref = linspace(xd, xd, length(t));
+
+plot(t, x, ...
+    'LineWidth',2, ...
+    'Color',colors(i,:))
+hold on
+end
+
+xlabel("Time (s)")
+ylabel("Position (m)")
+lgd = legend( ...
+    'Generation 1', ...
+    'Generation 2', ...
+    'Generation 5', ...
+    'Generation 10', ...
+    'Generation 20', ...
+    'Final Generation');
+
+lgd.Position(3) = lgd.Position(3) + 0.02;
+
+%%
+exportgraphics(gcf, "cart_tuning_progression.pdf")
+
+
+%% Plot the responses of each optimised controller
+
+clc; clear; close all;
+plot_format();
+base = "tuning_PSO/data/";
+x = load(base + "parallel_sim_step.mat").x;
+a = load(base + "parallel_sim_step.mat").angle;
+
+% Time vector
+
+t = 0:0.01:17;
+t = t(:);
+
+xd = 0.8;
+ref = xd * ones(length(t),1);
+
+% Figure setup
+
+f = figure;
+
+f.Units = 'centimeters';
+f.Position = [2 2 38 12];
+
+tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
+
+% Cart position subplot
+
+nexttile
+
+plot(t, x, ...
+    'LineWidth', 2)
+hold on
+
+plot(t, ref, '--', ...
+    'LineWidth', 1.5)
+
+grid on
+xlim([0 18])
+xlabel('Time (s)')
+ylabel('Position (m)')
+
+lgd = legend('Cart Position', 'Reference', ...
+    'Location','best');
+
+lgd.Position(3) = lgd.Position(3) + 0.02;
+% Pendulum sway subplot
+
+nexttile
+
+plot(t, a, ...
+    'LineWidth', 2)
+
+grid on
+xlim([0 18])
+xlabel('Time (s)')
+ylabel('Angle (deg)')
+
+lgd = legend('Pendulum Sway', ...
+    'Location','best');
+
+lgd.Position(3) = lgd.Position(3) + 0.02;
+
+colormap(turbo)
+
+
+%%
+exportgraphics(f, "parallel.pdf")
 
 %%
 close all;

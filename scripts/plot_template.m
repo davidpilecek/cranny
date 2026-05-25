@@ -16,10 +16,9 @@ subplot(2,1,1)
 plot(data_sledge{idx}.SamplingInstants, data_sledge{idx}.OutputData, 'black', 'LineWidth', 2); hold on;
 plot(data_sledge{idx}.SamplingInstants, lsim(tf_sledge, data_sledge{idx}.InputData, data_sledge{idx}.SamplingInstants), 'r--', 'LineWidth', 2)
 axis tight; grid on;
-title("Sledge Position", "FontSize",14)
+title("Cart Position", "FontSize",14)
 % xlabel("Time (s)")
 ylabel("Position (m)")
-% legend('Measured', 'Simulated');
 
 % Tight layout
 subplot(2,1,2)
@@ -29,12 +28,123 @@ axis tight; grid on;
 title("Pendulum Angle", "FontSize",14)
 xlabel("Time (s)")
 ylabel("Angle (rad)")
-% legend('Measured', 'Simulated');
+
 
 % Export (vector for report)
 exportgraphics(gcf, 'sine.pdf', 'ContentType','vector');
 
-%% System parameters
+
+%%
+
+close all;
+plot_format();   % apply styling
+
+data_sledge = {data_bang_sledge, data_pulse_sledge, data_sine_sledge, data_sine2_sledge, data_step_sledge};
+
+idx = 5;
+% Create figure
+f = figure; hold on;
+
+f.Units = 'centimeters';
+f.Position = [2 2 25 10];
+
+plot(data_sledge{idx}.SamplingInstants, data_sledge{idx}.OutputData, 'black', 'LineWidth', 2); hold on;
+plot(data_sledge{idx}.SamplingInstants, lsim(tf_sledge, data_sledge{idx}.InputData, data_sledge{idx}.SamplingInstants), 'r--', 'LineWidth', 2)
+axis tight; grid on;
+title("Cart Position", "FontSize",20)
+% xlabel("Time (s)")
+ylabel("Position (m)")
+
+
+% Export (vector for report)
+% exportgraphics(gcf, 'step_cart.pdf', 'ContentType','vector');
+
+%%
+
+clc;
+clear;
+close all;
+
+% Angle range
+theta = linspace(-2, 2, 1000);
+
+% Functions
+y_sin = sin(theta);
+y_cos = cos(theta);
+
+% Linear approximations
+sin_lin = theta;      % sin(theta) ≈ theta
+cos_lin = ones(size(theta)); % cos(theta) ≈ 1
+
+% Figure
+
+clc;
+clear;
+close all;
+
+% Angle range
+theta = linspace(-2, 2, 1000);
+
+% Functions
+y_sin = sin(theta);
+y_cos = cos(theta);
+
+% Linear approximations
+sin_lin = theta;      % sin(theta) ≈ theta
+cos_lin = ones(size(theta)); % cos(theta) ≈ 1
+
+% Figure
+
+figure('Color','w');
+
+% ---------- SIN PLOT ----------
+subplot(2,1,1)
+
+plot(theta, y_sin, 'b', 'LineWidth', 2)
+hold on
+plot(theta, sin_lin, 'r--', 'LineWidth', 2)
+
+grid on
+box on
+
+title('sin(\theta) and Linear Approximation', 'FontWeight','bold', 'FontSize',15)
+xlabel('\theta (rad)', 'FontWeight','bold', 'FontSize',13)
+ylabel('Value', 'FontWeight','bold', 'FontSize',13)
+
+legend('sin(\theta)', '\theta', 'Location', 'southeast')
+
+xlim([-2 2])
+ylim([-1.2 1.2])
+
+xticks([-pi/2 -pi/3 -pi/6 0 pi/6 pi/3 pi/2])
+xticklabels({'-\pi/2','-\pi/3','-\pi/6','0','\pi/6','\pi/3','\pi/2'})
+
+% ---------- COS PLOT ----------
+subplot(2,1,2)
+
+plot(theta, y_cos, 'b', 'LineWidth', 2)
+hold on
+plot(theta, cos_lin, 'r--', 'LineWidth', 2)
+
+grid on
+box on
+
+title('cos(\theta) and Linear Approximation', 'FontWeight','bold', 'FontSize',15)
+xlabel('\theta (rad)', 'FontWeight','bold', 'FontSize',13)
+ylabel('Value', 'FontWeight','bold', 'FontSize',13)
+
+legend('cos(\theta)', '1', 'Location', 'southeast')
+
+xlim([-2 2])
+ylim([-1.2 1.2])
+
+xticks([-pi/2 -pi/3 -pi/6 0 pi/6 pi/3 pi/2])
+xticklabels({'-\pi/2','-\pi/3','-\pi/6','0','\pi/6','\pi/3','\pi/2'})
+
+
+% exportgraphics(gcf, 'trig_approx.pdf', 'ContentType','vector');
+%%
+
 
 close all;
 plot_format();   % apply styling
@@ -73,14 +183,14 @@ plot(t, y1, 'b--', 'LineWidth', 2); hold on;
 stem(0, A1, 'k', 'filled');
 title('(a) Response to $A_1$'); 
 % xlabel('Time [s]')
-ylabel('Angle [rad]')
+ylabel('Angle (rad)')
 
 subplot(3,1,2)
 plot(t, y2, 'r--', 'LineWidth', 2); hold on;
 stem(t2, A2, 'k', 'filled');
 title('(b) Response to $A_2$'); 
 % xlabel('Time [s]')
-ylabel('Angle [rad]')
+ylabel('Angle (rad)')
 
 subplot(3,1,3)
 plot(t, y1, 'b--', 'LineWidth', 2); hold on;
@@ -90,8 +200,8 @@ stem([0 t2], [A1 A2], 'k', 'filled');
 
 legend('$A_1$ Response','$A_2$ Response','Total Response\,');
 title('(c) Superposition (ZV - zero residual vibration)')
-xlabel('Time [s]')
-ylabel('Angle [rad]')
+xlabel('Time (s)')
+ylabel('Angle (rad)')
 % Tight layout
 axis tight;
 
